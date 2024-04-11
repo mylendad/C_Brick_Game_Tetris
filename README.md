@@ -1,162 +1,162 @@
-# BrickGame Тетрис
-Резюме: в данном проекте тебе предстоит реализовать игру «Тетрис» на языке программирования С с использованием структурного подхода.
+# BrickGame Tetris
+Summary: In this project, you need to implement the Tetris game in the C programming language using a structural approach.
 
-## Содержание
+# Contents
 
-- [BrickGame Тетрис](#brickgame-тетрис)
-  - [Содержание](#содержание)
-  - [Введение](#введение)
+- [BrickGameTetris](#brickgame-tetris)
+  - [Contents](#contents)
+  - [Introduction](#introduction)
 - [Chapter I](#chapter-i)
-  - [Общая информация](#общая-информация)
+  - [General Information](#general-information)
     - [BrickGame](#brickgame)
-    - [История тетриса](#история-тетриса)
-    - [Конечные автоматы](#конечные-автоматы)
-    - [Фроггер](#фроггер)
-    - [Тетрис](#тетрис)
+    - [History](#history)
+    - [Finite-state machines](#fine-states-machines)
+    - [Frogger](#frogger)
+    - [Tetris](#tetris)
 - [Chapter II](#chapter-ii)
-  - [Требования к проекту](#требования-к-проекту)
-    - [Часть 1. Основное задание](#часть-1-основное-задание)
-    - [Часть 2. Дополнительно. Подсчет очков и рекорд в игре](#часть-2-дополнительно-подсчет-очков-и-рекорд-в-игре)
-    - [Часть 3. Дополнительно. Механика уровней](#часть-3-дополнительно-механика-уровней)
+  - [Project Requirments](#project-requirements)
+    - [Part 1. Main task](#part-1-main-task)
+    - [Part 2. Bonus. Scoring and game record](#part-2-bonus-scoring-and-game-record)
+    - [Part 3. Bonus. Level mechanics](#part-3-bonus-level-mechanics)
 
-## Введение
+## Introduction
 
-Для реализации игры «Тетрис» проект должен состоять из двух частей: библиотеки, реализующей логику работы игры, которую можно подключать к различным GUI в будущем, и терминального интерфейса, разработанного с использованием библиотеки `ncurses`. Логика работы библиотеки должна быть реализована с использованием конечных автоматов, одно из возможных описаний которого будет дано ниже.
+The project must consist of two parts for implementing the Tetris game: a library that implements the game's logic, which can be connected to various GUIs in the future, and a terminal interface. The logic of the library must be implemented using finite-state machines, one of the possible descriptions of which will be given below.
 
 ## Chapter I <div id="chapter-i"></div>
-## Общая информация
+# General information
 ### BrickGame
 
-BrickGame — популярная портативная консоль 90-ых годов с несколькими ~~тысячами~~ встроенными играми, разработанная в Китае. Изначально была копией разработанной в СССР и выпущенной Nintendo в рамках платформы GameBoy игры «Тетрис», но включала в себя также и множество других игр, которые добавлялись с течением времени. Консоль имела небольшой экранчик с игровым полем размера 10х20, представляющим из себя матрицу «пикселей». Справа от поля находилось табло с цифровой индикацией состояния текущей игры, рекордами и прочей дополнительной информацией. Самыми распространенными играми на BrickGame были: тетрис, танки, гонки, фроггер и змейка.
+BrickGame is a popular handheld console from the 90s with several ~~thousands~~ of built-in games developed in China. Originally, it was a copy of Tetris, developed in the USSR and released by Nintendo as part of the GameBoy platform, but also included many other games that were added over time. The console had a small screen with a 10x20 size playing field, which was a matrix of "pixels". There was a scoreboard to the right of the field with a digital display of the current game status, records and other additional information. The most popular games on BrickGame were Tetris, Tanks, Racing, Frogger, and Snake.
 
 ![BrickGameConsole](misc/images/brickgame-console.jpg)
 
-### История тетриса
+### History
 
-«Тетрис» был написан Алексеем Пажитновым 6 июня 1984 года на компьютере Электроника-60. Игра представляла собой головоломку, построенную на использовании геометрических фигур «тетрамино», состоящих из четырех квадратов. Первая коммерческая версия игры была выпущена в Америке в 1987 году. В последующие годы «Тетрис» был портирован на множество различных устройств, в том числе мобильные телефоны, калькуляторы и карманные персональные компьютеры.
+Tetris was created on an Electronica-60 computer by Alexey Pajitnov on June 6, 1984. The game was a puzzle based on the use of "tetraminoes" - shaped pieces consisting of four squares. The first commercial version of the game was released in America in 1987. In the following years, Tetris was ported to many different devices, including cell phones, calculators, and PDAs.
 
-Наибольшую популярность приобрела реализация «Тетриса» для игровой консоли Game Boy и видеоприставки NES. Но кроме нее существуют различные версии игры. Например, есть версия с трехмерными фигурами или дуэльная версия, в которой два игрока получают одинаковые фигуры и пытаются обойти друг друга по очкам.
+The most popular version of Tetris is the one for the Game Boy and NES consoles. But there are various versions of the game apart from it. For example, there's a version with three-dimensional pieces or a dueling version where two players get the same pieces and try to beat each other on points.
 
-### Конечные автоматы
+### Finite-state machines
 
-Конечный автомат (КА) в теории алгоритмов — математическая абстракция, модель дискретного устройства, имеющего один вход, один выход и в каждый момент времени находящегося в одном состоянии из множества возможных.
+A finite-state machine (FSM) in the theory of algorithms is a mathematical abstraction, a model of a discrete device that has one entry, one exit and at each moment of time is in one state out of a set of possible states.
 
-При работе на вход КА последовательно поступают входные воздействия, а на выходе КА формирует выходные сигналы. Переход из одного внутреннего состояния КА в другое может происходить не только от внешнего воздействия, но и самопроизвольно.
+During operation, the input of the FSM sequentially receives entry actions, and at the output the FSM generates exit signals. Transition from one internal state to another can occur not only from external action, but also spontaneously.
 
-КА можно использовать для описания алгоритмов, позволяющих решать те или иные задачи, а также для моделирования практически любого процесса. Несколько примеров:
+FSM can be used to describe algorithms for solving certain problems, as well as for modeling almost any process. A few examples:
 
-- Логика искусственного интеллекта для игр;
-- Синтаксический и лексический анализ;
-- Сложные прикладные сетевые протоколы;
-- Потоковая обработка данных.  
+- Artificial intelligence logic for games;
+- Syntactic and lexical analysis;
+- Complex application network protocols;
+- Streaming data  
 
-Ниже представлены примеры использования КА для формализации игровой логики нескольких игр из BrickGame.
+Below are examples of using FSM to formalize the game logic of a few games from BrickGame.
 
-### Фроггер
+### Frogger
 
-![Фроггер](misc/images/frogger-game.png)
+![Frogger](misc/images/frogger-game.png)
 
-«Фроггер» — одна из поздних игр, выходящих на консолях Brickgame. Игра представляет собой игровое поле, по которому движутся бревна, и, перепрыгивая по ним, игроку необходимо перевести лягушку с одного берега на другой. Если игрок попадает в воду или лягушка уходит за пределы игрового поля, то лягушка погибает. Игра завершается, когда игрок доводит лягушку до другого берега или погибает последняя лягушка.
+Frogger is one of the later games released on the Brickgame consoles. The game is a playing field on which the logs move, and by jumping over them, the player needs to direct the frog from one side to the other. If the player hits the water or the frog moves outside the playing field, the frog dies. The game ends when the player brings the frog to the other side or the last frog dies.
 
-Для формализации логики данной игры можно представить следующий вариант конечного автомата:
+In order to formalize the logic of this game, the following variant of a finite-state machine can be introduced:
 
-![Конечный автомат фроггера](misc/images/frogger.jpg)
+![Frogger's finite-state machine](misc/images/frogger.jpg)
 
-Данный КА имеет следующие состояния:
+This FSM has the following states:
 
-- Старт — состояние, в котором игра ждет, пока игрок нажмет кнопку готовности к игре.
-- Спавн — состояние, в котором создается очередная лягушка.
-- Перемещение — основное игровое состояние с обработкой ввода от пользователя — движение лягушки по полосе влево/право или прыжки вперед/назад.
-- Сдвиг — состояние, которое наступает после истечения таймера, при котором сдвигаются все объекты на полосах вправо, вместе с лягушкой.
-- Столкновение — состояние, которое наступает, если после прыжка лягушка попадает в воду или после смещения бревен лягушка оказывается за пределами игрового поля.
-- Достигнут другой берег — состояние, которое наступает при достижении лягушкой верхней другого берега.
-- Игра окончена — состояние, которое наступает после достижения другого берега или смерти последней лягушки.
+- Start is the state in which the game waits for the player to press the ready to play button.
+- Spawn is the state in which the next frog is created.
+- Moving is the main game state with user input processing - moving the frog along the lane left/right or jumping forward/backward.
+- Shifting is the state that occurs after the timer expires, which shifts all objects on the lanes to the right, along with the frog.
+- Collision is a state that occurs if the frog hits the water after jumping, or if the frog is outside the playing field after shifting logs.
+- Reached the other side is the state that occurs when a frog reaches the  other side.
+- Game over is the state that occurs after reaching the other side of the river or the last frog dies.
 
-Пример реализации фроггера с использованием КА вы можете найти в папке `code-samples`.
+You can find an example of implementing a frogger using FSM in the `code-samples` folder.
 
-### Тетрис
+### Tetris
 
-![Тетрис](misc/images/tetris-game.png)
+![Tetris](misc/images/tetris-game.png)
 
-«Тетрис», наверное, одна из самых популярных игр для консоли Brickgame. Нередко и саму консоль называют тетрисом. Цель игры — в наборе очков за построение линий из генерируемых игрой блоков. Очередной блок, сгенерированный игрой, начинает опускаться вниз по игровому полю, пока не достигнет нижней границы или не столкнется с другим блоком. Пользовать может поворачивать фигуры и перемещать их по горизонтали, стараясь составлять ряды. После заполнения ряд уничтожается, игрок получает очки, а блоки, находящиеся выше заполненного ряда опускаются вниз. Игра заканчивается, когда очередная фигура останавливается в самом верхнем ряду.
+Tetris is probably one of the most popular games for the Brickgame console. It's not rare for the console itself to be referred to as Tetris. The goal of the game is to score points for building lines from the blocks generated by the game. The next block generated by the game starts moving down the playing field until it reaches the lower boundary or collides with another block. The user can rotate the pieces and move them horizontally, trying to make rows. Once filled, the row is destroyed, the player gets points, and the blocks above the filled row go down. The game ends when the next piece stops in the topmost row.
 
-Для формализации логики данной игры можно представить следующий вариант конечного автомата:
+In order to formalize the logic of this game, the following variant of a finite-state machine can be introduced:
 
-![Конечный автомат тетриса](misc/images/tetris.png)
+![Tetris’s finite-state machine](misc/images/tetris.png)
 
-Данный КА состоит из следующих состояний:
+This FSM has the following states:
 
-- Старт — состояние, в котором игра ждет, пока игрок нажмет кнопку готовности к игре.
-- Спавн — состояние, в которое переходит игра при создании очередного блока и выбора следующего блока для спавна.
-- Перемещение — основное игровое состояние с обработкой ввода от пользователя — поворот блоков/перемещение блоков по горизонтали.
-- Сдвиг — состояние, в которое переходит игра после истечения таймера. В нем текущий блок перемещается вниз на один уровень.
-- Соединение — состояние, в которое преходит игра после «соприкосновения» текущего блока с уже упавшими или с землей. Если образуются заполненные линии, то она уничтожается и остальные блоки смещаются вниз. Если блок остановился в самом верхнем ряду, то игра переходит в состояние «игра окончена».
-- Игра окончена — игра окончена.
+- Start is the state in which the game waits for the player to press the ready to play button.
+- Spawn is the state the game enters when you create another block and choose the next block to spawn.
+- Moving is the main game state with user input processing - rotating blocks/moving blocks horizontally.
+- Shifting is the state the game enters after the timer expires. It moves the current block down one level.
+- Attaching is the state the game enters after the current block "touches" the already fallen blocks or the ground. If filled rows are created, it is destroyed and the rest of the blocks are shifted down. If a block is stopped in the topmost row, the game enters the "game over" state.
+- Game over is a game over.
 
 ## Chapter II <div id="chapter-ii"></div>
-## Требования к проекту
+## Project Requirements
 
-### Часть 1. Основное задание
+### Part 1. Main task
 
-Тебе необходимо реализовать программу BrickGame v1.0 aka Tetris:
+You need to implement the BrickGame v1.0 aka Tetris program:
 
-- Программа должна быть разработана на языке Си стандарта C11 с использованием компилятора gcc.
-- Программа должна состоять из двух частей: библиотеки, реализующей логику игры тетрис, и терминального интерфейса с использованием библиотеки `ncurses`.
-- Для формализации логики игры должен быть использован конечный автомат.
-- Библиотека должна иметь функцию, принимающая на вход ввод пользователя, и функцию, выдающую матрицу, которая описывает текущее состояние игрового поля, при каждом ее изменении.
-- Код библиотеки программы должен находиться в папке `src/brick_game/tetris`.
-- Код с интерфейсом программы должен находиться в папке `src/gui/cli`.
-- Сборка программы должна быть настроена с помощью Makefile со стандартным набором целей для GNU-программ: all, install, uninstall, clean, dvi, dist, test, gcov_report. Установка должна вестись в любой другой произвольный каталог.
-- Программа должна быть разработана в соответствии с принципами структурного программирования.
-- При написании кода придерживайся Google Style.
-- Должно быть обеспечено покрытие библиотеки unit-тестами, с помощью библиотеки `check` (тесты должны проходить на ОС Darwin/Ubuntu). Покрытие библиотеки с логикой игры тестами должно составлять не меньше 80 процентов.
-- В игре должны присутствовать следующие механики:
-  - Вращение фигур;
-  - Перемещение фигуры по горизонтали;
-  - Ускорение падения фигуры (при нажатии кнопки фигура перемещается до конца вниз);
-  - Показ следующей фигуры;
-  - Уничтожение заполненных линий;
-  - Завершение игры при достижении верхней границы игрового поля;
-  - В игре должны присутствовать все виды фигур, показанных на картинке ниже.
-- Для управления добавь поддержку всех кнопок, предусмотренных на физической консоли:
-  - Начало игры,
-  - Пауза,
-  - Завершение игры,
-  - Стрелка влево — движение фигуры влево,
-  - Стрелка вправо — движение фигуры вправо,
-  - Стрелка вниз — падение фигуры,
-  - Стрелка вверх — ни используется в данной игре,
-  - Действие (вращение фигуры).
-- Игровое поле должно соответствовать размерам игрового поля консоли — десять «пикселей» в ширину и двадцать «пикселей» в высоту.
-- Фигура, после достижения нижней границы поля или соприкосновения с другой фигурой, должна остановиться. После этого происходит генерация следующей фигуры, показанной на превью.
-- Интерфейс библиотеки должен соответствовать описанию, которое находится в materials/library-specification.md.
-- Пользовательский интерфейс должен поддерживать отрисовку игрового поля и дополнительной информации.
-- Подготовь в любом формате диаграмму, описывающую используемый КА (его состояния и все возможные переходы).
+- The program must be developed in C language of C11 standard using gcc compiler.
+- The program must consist of two parts: a library implementing the logic of the tetris game, and a terminal interface using the `ncurses` library.
+- A finite-state machine must be used to formalize the logic of the game.
+- The library must have a function that accepts user input and a function that outputs a matrix that describes the current state of the playing field whenever it is changed.
+- The program library code must be located in the `src/brick_game/tetris` folder.
+- The program interface code must be located in the `src/gui/cli` folder
+- The program must be built using a Makefile with the standard set of targets for GNU-programs: all, install, uninstall, clean, dvi, dist, test, gcov_report. Installation directory can be arbitrary
+- The program must be developed in accordance with the principles of structured programming.
+- Stick to Google Style when writing code.
+- Prepare full coverage of the library with unit tests, using the `check` library (tests must run on Darwin/Ubuntu OS). The coverage of the library with game logic with tests must be at least 80 percent.
+- The following mechanics must be in the game:
+  - Rotation of pieces;
+  - Moving pieces horizontally;
+  - Acceleration of the piece's fall (when the button is pressed, the figure moves all the way down);
+  - Display of the next piece;
+  - Destruction of filled raws;
+  - End of the game when the top border of the playing field is reached;
+  - All sorts of pieces shown in the picture below must be included in the game.
+- Add support for all the buttons provided on the physical console for control:
+  - Start game,
+  - Pause,
+  - End game,
+  - Left arrow - movement of the piece to the left,
+  - Right arrow - movement of the piece to the right,
+  - Down arrow - piece falls,
+  - Up arrow is not used in this game,
+  - Action (piece rotation).
+- The playing field must match the dimensions of the console's playing field - ten "pixels" wide and twenty "pixels" high.
+- After reaching the lower boundary of the field or contacting another figure, the figure must stop. After that, the next piece, shown in the preview, is generated.
+- The library interface must correspond to the description found in materials/library-specification.md.
+- The UI must support rendering of the playing field and additional information.
+- Prepare a diagram in any format describing the used FSM (its states and all possible transitions).
 
-Используемые фигуры:
+Pieces used:
 
-![Фигуры](misc/images/tetris-pieces.png)
+![Pieces](misc/images/tetris-pieces.png)
 
-### Часть 2. Дополнительно. Подсчет очков и рекорд в игре
+### Part 2. Bonus. Scoring and game record
 
-Добавь в игру следующие механики:
+Add the following mechanics to the game:
 
-- подсчет очков;
-- хранение максимального количества очков.
+- scoring;
+- storing maximum points.
 
-Данная информация должна передаваться и выводиться пользовательским интерфейсом в боковой панели. Максимальное количество очков должно храниться в файле или встраиваемой СУБД и сохраняться между запусками программы.
+This information must be passed and displayed by the user interface in the sidebar. The maximum number of points must be stored in a file or embedded DBMS and saved between program runs.
 
-Максимальное количество очков должно изменяться во время игры, если пользователь во время игры превышает текущий показатель максимального количества набранных очков.
+The maximum number of points must be changed during the game if the user exceeds the current maximum score.
 
-Начисление очков будет происходить следующим образом:
+Points will be accrued as follows:
 
-- 1 линия — 100 очков;
-- 2 линии — 300 очков;
-- 3 линии — 700 очков;
-- 4 линии — 1500 очков.
+- 1 row is 100 points;
+- 2 rows is 300 points;
+- 3 rows is 700 points;
+- 4 rows is 1500 points;
 
-### Часть 3. Дополнительно. Механика уровней
+### Part 3. Bonus. Level mechanics
 
-Добавь в игру механику уровней. Каждый раз, когда игрок набирает 600 очков, уровень увеличивается на 1. Повышение уровня увеличивает скорость движения фигур. Максимальное количество уровней — 10.
+Add level mechanics to the game. Each time a player gains 600 points, the level increases by 1. Increasing the level boosts the speed at which the pieces move. The maximum number of levels is 10.
 
-💡 [Нажми сюда](https://forms.yandex.ru/cloud/65d4a02673cee73bdc52da80/)**, чтобы поделиться с нами обратной связью на этот проект**. Это анонимно и поможет нашей команде сделать твоё обучение лучше.
+💡 [Press here](https://forms.yandex.ru/cloud/65d4a02673cee73bdc52da80/)**, to give us feedback on this project**. It's anonymous and will help our team make your learning process better.

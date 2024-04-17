@@ -15,7 +15,8 @@ typedef enum
     REACH,
     COLLIDE,
     GAMEOVER,
-    EXIT_STATE
+    EXIT_STATE,
+    FILE_ERROR_STATE
 } frog_state;
 
 typedef enum

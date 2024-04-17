@@ -24,13 +24,20 @@ void game_loop()
     stats_init(&stats);
 
     while (break_flag)
-    {
-        if (state == GAMEOVER || state == EXIT_STATE)
+    {   
+        if (state == GAMEOVER || state == EXIT_STATE || state == FILE_ERROR_STATE)
             break_flag = FALSE;
 
         sigact(get_signal(signal), &state, &stats, &map, &frog);
 
         if (state == MOVING || state == START)
             signal = GET_USER_INPUT;
+    }
+
+    if (state == FILE_ERROR_STATE)
+    {
+        print_levelerror();
+        nodelay(stdscr, FALSE);
+        getch();
     }
 }

@@ -101,7 +101,7 @@ void sigact(signals sig, frog_state *state, game_stats_t *stats, board_t *map, p
                     *state = MOVING;
                 }
                 else
-                    *state = EXIT_STATE;
+                    *state = FILE_ERROR_STATE;
 
             break;
         case MOVING:

@@ -50,13 +50,15 @@ action fsm_table[8][7] = {
 
 void sigact(signals sig, frog_state *state, game_stats_t *stats, board_t *map, player_pos *frog_pos)
 {
+    action act = NULL;
     params_t prms;
     prms.stats = stats;
     prms.state = state;
     prms.map = map;
     prms.frog_pos = frog_pos;
 
-    action act = fsm_table[*state][sig];
+    if (*state != FILE_ERROR_STATE)
+        act = fsm_table[*state][sig];
 
     if (act)
         act(&prms);
@@ -120,7 +122,7 @@ void spawn(params_t *prms)
             *prms->state = MOVING;
         }
         else
-            *prms->state = EXIT_STATE;
+            *prms->state = FILE_ERROR_STATE;
     }
 }
 

@@ -18,6 +18,16 @@ void print_overlay(void)
     MVPRINTW(BOARD_N / 2, (BOARD_M - INTRO_MESSAGE_LEN) / 2 + 1, INTRO_MESSAGE);
 }
 
+void print_levelerror(void)
+{
+    clear();
+    MVPRINTW(0, 0, "An error occured openning level file!");
+    MVPRINTW(2, 0, "Please check ./tests/ directory.");
+    MVPRINTW(3, 0, "There should be 5 level files named level_(1-5).txt.");
+    MVPRINTW(4, 0, "Also try to open the game nearby ./tests/ directory.");
+    MVPRINTW(6, 0, "Press any key to exit.");
+}
+
 void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
 {
     MVADDCH(top_y, left_x, ACS_ULCORNER);

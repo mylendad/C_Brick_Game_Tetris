@@ -36,3 +36,5 @@ void userInput(UserAction_t action, bool hold);
 
 GameInfo_t updateCurrentState();
 ```
+
+Обратите внимание, что информация о текущем состоянии игры `GameInfo_t` может быть представлена внутри библиотеки игры статическим объектом.

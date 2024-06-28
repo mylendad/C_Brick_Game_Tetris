@@ -36,3 +36,5 @@ void userInput(UserAction_t action, bool hold);
 
 GameInfo_t updateCurrentState();
 ```
+
+Note that the information about the current game state `GameInfo_t` can be represented inside the game library as a static object.

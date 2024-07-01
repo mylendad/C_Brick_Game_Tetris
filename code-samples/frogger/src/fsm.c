@@ -70,112 +70,138 @@ void moveleft(player_pos *frog_pos)
     }
 }
 
+void on_start_state(signals sig, frog_state *state)
+{
+    switch (sig)
+    {
+        case ENTER_BTN:
+            *state = SPAWN;
+            break;
+        case ESCAPE_BTN:
+            *state = EXIT_STATE;
+            break;
+        default:
+            *state = START;
+            break;
+    }
+}
+
+void on_spawn_state(frog_state *state, game_stats_t *stats, board_t *map, player_pos *frog_pos)
+{
+    if (stats->level > LEVEL_CNT)
+        *state = GAMEOVER;
+    else
+        if (!lvlproc(map, stats))
+        {
+            fill_finish(map->finish);
+            print_finished(map);
+            frogpos_init(frog_pos);
+            *state = MOVING;
+        }
+        else
+            *state = FILE_ERROR_STATE;
+}
+
+void on_moving_state(signals sig, frog_state *state, board_t *map, player_pos *frog_pos)
+{
+    switch (sig)
+    {
+        case MOVE_UP:
+            moveup(frog_pos);
+            break;
+        case MOVE_DOWN:
+            movedown(frog_pos);
+            break;
+        case MOVE_RIGHT:
+            moveright(frog_pos);
+            break;
+        case MOVE_LEFT:
+            moveleft(frog_pos);
+            break;
+        case ESCAPE_BTN:
+            *state = EXIT_STATE;
+            break;
+        default:
+            break;
+    }
+    
+    if (*state != EXIT_STATE)
+    {
+        if (check_collide(frog_pos, map))
+            *state = COLLIDE;
+        else if (check_finish_state(frog_pos, map))
+            *state = REACH;
+        else
+            *state = SHIFTING;
+    }
+}
+
+void on_shifting_state(frog_state *state, game_stats_t *stats, board_t *map, player_pos *frog_pos)
+{
+    shift_map(map);
+
+    if (check_collide(frog_pos, map))
+        *state = COLLIDE;
+    else
+    {
+        *state = MOVING;
+        print_board(map, frog_pos);
+        print_stats(stats);
+    }
+}
+
+void on_reach_state(frog_state *state, game_stats_t *stats, board_t *map, player_pos *frog_pos)
+{
+    stats->score += 1;
+    add_proggress(map);
+
+    if (check_level_compl(map))
+    {
+        stats->level++;
+        stats->speed++;
+        *state = SPAWN;
+    }
+    else
+    {
+        frogpos_init(frog_pos);
+        print_finished(map);
+        *state = MOVING;
+    }
+}
+
+void on_collide_state(frog_state *state, game_stats_t *stats, player_pos *frog_pos)
+{
+    if (stats->lives)
+    {
+        stats->lives--;
+        frogpos_init(frog_pos);
+        *state = MOVING;
+    }
+    else
+        *state = GAMEOVER;
+}
+
 void sigact(signals sig, frog_state *state, game_stats_t *stats, board_t *map, player_pos *frog_pos)
 {
     switch (*state)
     {
         case START:
-            switch (sig)
-            {
-                case ENTER_BTN:
-                    *state = SPAWN;
-                    break;
-                case ESCAPE_BTN:
-                    *state = EXIT_STATE;
-                    break;
-                default:
-                    *state = START;
-                    break;
-            }
-            
+            on_start_state(sig, state);
             break;
         case SPAWN:
-            if (stats->level > LEVEL_CNT)
-                *state = GAMEOVER;
-            else
-                if (!lvlproc(map, stats))
-                {
-                    fill_finish(map->finish);
-                    print_finished(map);
-                    frogpos_init(frog_pos);
-                    *state = MOVING;
-                }
-                else
-                    *state = FILE_ERROR_STATE;
-
+            on_spawn_state(state, stats, map, frog_pos);
             break;
         case MOVING:
-            switch (sig)
-            {
-                case MOVE_UP:
-                    moveup(frog_pos);
-                    break;
-                case MOVE_DOWN:
-                    movedown(frog_pos);
-                    break;
-                case MOVE_RIGHT:
-                    moveright(frog_pos);
-                    break;
-                case MOVE_LEFT:
-                    moveleft(frog_pos);
-                    break;
-                case ESCAPE_BTN:
-                    *state = EXIT_STATE;
-                    break;
-                default:
-                    break;
-            }
-            
-            if (*state != EXIT_STATE)
-            {
-                if (check_collide(frog_pos, map))
-                    *state = COLLIDE;
-                else if (check_finish_state(frog_pos, map))
-                    *state = REACH;
-                else
-                    *state = SHIFTING;
-            }
-
+            on_moving_state(sig, state, map, frog_pos);
             break;
         case SHIFTING:
-            shift_map(map);
-
-            if (check_collide(frog_pos, map))
-                *state = COLLIDE;
-            else
-            {
-                *state = MOVING;
-                print_board(map, frog_pos);
-                print_stats(stats);
-            }
-
+            on_shifting_state(state, stats, map, frog_pos);
             break;
         case REACH:
-            stats->score += 1;
-            add_proggress(map);
-            if (check_level_compl(map))
-            {
-                stats->level++;
-                stats->speed++;
-                *state = SPAWN;
-            }
-            else
-            {
-                frogpos_init(frog_pos);
-                print_finished(map);
-                *state = MOVING;
-            }
-
+            on_reach_state(state, stats, map, frog_pos);
             break;
         case COLLIDE:
-            if (stats->lives)
-            {
-                stats->lives--;
-                frogpos_init(frog_pos);
-                *state = MOVING;
-            }
-            else
-                *state = GAMEOVER;
+            on_collide_state(state, stats, frog_pos);
             break;
         case GAMEOVER:
             print_banner(stats);

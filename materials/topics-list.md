@@ -1,14 +1,14 @@
 # Topoics list
 
-Hello, student of School21!😉
+Hello, School21 student! 😉
 
-To make it easier for you to navigate the material, we have prepared a list of topics that you will learn in this project.
+To help you navigate through the material, we have prepared a list of topics that you will learn in this project.
 
 We will study:
 
-- finite-state machine;
-- working with matrixes;
+- finite state machines;
+- working with matrices;
 - working with files;
-- working with GUI library.
+- working with the GUI library.
 
-Now, knowing what awaits you in this project, you can slowly begin to study the topics listed above.😇
+Now that you know what awaits you in this project, you can slowly begin to study the topics listed above. 😇

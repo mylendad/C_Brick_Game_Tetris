@@ -160,3 +160,7 @@ Points are accumulated as follows:
 ### Part 3. Bonus. Level mechanics
 
 Add level mechanics to the game. Each time a player earns 600 points, the level increases by 1. Increasing the level increases the speed at which the pieces move. The maximum number of levels is 10.
+
+___
+
+Your project will require a code review — don't forget to check out the instructions for conducting and completing a code review on the provided [link](https://applicant.21-school.ru/code_review).

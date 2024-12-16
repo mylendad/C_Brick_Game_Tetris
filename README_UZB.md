@@ -160,3 +160,7 @@ Ochkolarni hisoblash quyidagi tarzda amalga oshiriladi:
 ### 3-qism. Qo'shimcha. Darajalar mexanikasi
 
 O'yinga darajadagi mexanikani qo'shing. Har safar o'yinchi 600 ochko to'plaganida, daraja 1 ga oshadi. Darajani oshirish shakllar tezligini oshiradi. Maksimal darajalar soni – 10.
+
+___
+
+Loyihada siz kod-revyu tekshiruvidan o‘tishingiz talab etiladi — jarayon va qoidalar bilan [havola](https://applicant.21-school.ru/code_review) orqali tanishib chiqishni unutmang.

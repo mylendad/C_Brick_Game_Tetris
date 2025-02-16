@@ -1,18 +1,6 @@
-#include "fsm.h"
+#include "../inc/fsm.h"
 
-// This is a finite state machine realisation based on matrix of "actions".
-/*
-    Function sigact() takes an action function from fsm_table.
-    Game state defines an index of line in matrix (where to get).
-    User signal defines an index of column in matrix (what to get).
 
-    Pros: 
-        1) By instantly taking needed action, speed of processing is higher than switch-case realisation.
-        2) Code is easy to read.
-        3) Flexible (easy to add new state)
-    Cons:
-        1) More memory usage.
-*/
 
 typedef struct game_params
 {

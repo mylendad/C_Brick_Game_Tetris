@@ -107,6 +107,7 @@ int main(int argc, char *argv[]) {
         if (a.startx > (win.border.ls - (win.width - a.width))) {
           create_shape(&a, FALSE);
           --a.startx;
+          --a.startx;
           create_shape(&a, TRUE);
         }
 
@@ -114,6 +115,7 @@ int main(int argc, char *argv[]) {
       case KEY_RIGHT:
         if (a.startx < (win.border.rs - 1)) {
           create_shape(&a, FALSE);
+          ++a.startx;
           ++a.startx;
           create_shape(&a, TRUE);
         }

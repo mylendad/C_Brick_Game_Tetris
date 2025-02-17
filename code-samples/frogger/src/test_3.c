@@ -19,9 +19,13 @@ typedef struct matrix_struct {
   int columns;
 } matrix_t;
 
+void spawn(matrix_t *a);
 void create_shape(matrix_t *a, bool flag);
 void init_shape_snake_x_params(matrix_t *a);
 void init_shape_snake_y_params(matrix_t *a);
+void create_x_snake(matrix_t *x_snake);
+void create_y_snake(matrix_t *y_snake);
+void init_shape_random(matrix_t *a);
 
 int s21_create_matrix(int rows, int columns, matrix_t *result) {
   int res = OK;
@@ -38,22 +42,7 @@ int s21_create_matrix(int rows, int columns, matrix_t *result) {
   return res;
 }
 
-int s21_transpose(matrix_t *A, matrix_t *result) {
-  if (A == NULL || result == NULL || A->matrix == NULL || A->rows < 1 ||
-      A->columns < 1)
-    return 1;
-
-  s21_create_matrix(A->columns, A->rows, result);
-  for (int i = 0; i < A->columns; i++) {
-    for (int j = 0; j < A->rows; j++) {
-      result->matrix[i][j] = A->matrix[j][i];
-    }
-  }
-  return OK;
-}
-
-void s21_print_matrix(matrix_t A,
-                      WINDOW *wind) {  // change to mvprintw or wprint?
+void s21_print_matrix(matrix_t A) {  // change to mvprintw or wprint?
   if (A.rows < 1 || A.columns < 1) {
     return;
   }
@@ -61,9 +50,9 @@ void s21_print_matrix(matrix_t A,
   for (int i = 0; i < A.rows; i++) {
     for (int j = 0; j < A.columns; j++) {
       if (j == A.columns - 1)
-        wprintw(wind, "%c\n", A.matrix[i][j]);
+        printw("%c\n", A.matrix[i][j]);
       else
-        wprintw(wind, "%c", A.matrix[i][j]);
+        printw("%c", A.matrix[i][j]);
     }
   }
 }
@@ -73,45 +62,11 @@ void print_win_params(WIN *p_win);
 void create_box(WIN *win, bool flag);
 
 int main(int argc, char *argv[]) {
+  // matrix_t x_snake;
   matrix_t a;
-  // s21_create_matrix(4, 8, &a);
-
-  // a.matrix[0][0] = 0;
-  // a.matrix[0][1] = 0;
-  // a.matrix[0][2] = 0;
-  // a.matrix[0][3] = 0;
-  // a.matrix[0][4] = 0;
-  // a.matrix[0][5] = 0;
-  // a.matrix[0][6] = 0;
-  // a.matrix[0][7] = 0;
-
-  // a.matrix[1][0] = '[';
-  // a.matrix[1][1] = ']';
-  // a.matrix[1][2] = '[';
-  // a.matrix[1][3] = ']';
-  // a.matrix[1][4] = '[';
-  // a.matrix[1][5] = ']';
-  // a.matrix[1][6] = '[';
-  // a.matrix[1][7] = ']';
-
-  // a.matrix[2][0] = 0;
-  // a.matrix[2][1] = 0;
-  // a.matrix[2][2] = 0;
-  // a.matrix[2][3] = 0;
-  // a.matrix[2][4] = 0;
-  // a.matrix[2][5] = 0;
-  // a.matrix[2][6] = 0;
-  // a.matrix[2][7] = 0;
-
-  // a.matrix[3][0] = 0;
-  // a.matrix[3][1] = 0;
-  // a.matrix[3][2] = 0;
-  // a.matrix[3][3] = 0;
-  // a.matrix[3][4] = 0;
-  // a.matrix[3][5] = 0;
-  // a.matrix[3][6] = 0;
-  // a.matrix[3][7] = 0;
-
+  // matrix_t y_snake;
+  // matrix_t shape_list[2] = {x_snake, y_snake};
+  // matrix_t *mt = &shape_list[rand() % 3];
   WIN win;
   // WINDOW *loc_win;
   int ch;
@@ -122,22 +77,31 @@ int main(int argc, char *argv[]) {
   keypad(stdscr, TRUE);
   noecho();
   // init_pair(1, COLOR_CYAN, COLOR_BLACK);
-
+  // create_x_snake(&x_snake);
+  // s21_print_matrix(x_snake);
+  // create_y_snake(&y_snake);
   init_win_params(&win);
   void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
   // init_shape_snake_y_params(&a);
+
+  // init_shape_random(&x_snake);
+  // init_shape_random(&y_snake);
   attron(COLOR_PAIR(1));
   printw("");
   refresh();
   attroff(COLOR_PAIR(1));
   create_box(&win, TRUE);
   create_shape(&a, TRUE);
+  // spawn();
   // s21_print_matrix(a, loc_win);s
   while ((ch = getch()) != KEY_F(1)) {
+    // matrix_t shape_list[2] = {x_snake, y_snake};
+    // matrix_t a = shape_list[rand() % 3];
     // s21_print_matrix(a, loc_win);
     create_box(&win, TRUE);
-    // create_shape(&a, TRUE);
+
+    // create_shape(&x_snake, TRUE);
     switch (ch) {
       case KEY_LEFT:
         if (a.startx > (win.border.ls - (win.width - a.width))) {
@@ -161,6 +125,9 @@ int main(int argc, char *argv[]) {
           ++a.starty;
           create_shape(&a, TRUE);
           break;
+
+        } else {
+          spawn(&a);
         }
     }
   }
@@ -184,6 +151,38 @@ void init_win_params(WIN *p_win) {
   p_win->border.br = ACS_LRCORNER;
 }
 
+// void create_next_shape() {
+
+//   char shape_list[7] = {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
+//   char ch = shape_list[rand()%8];
+//   switch (ch)
+//   {
+//   case 'a':
+//     /* code */
+//     break;
+//   case 'b':
+//     /* code */
+//     break;
+//     case 'c':
+//     /* code */
+//     break;
+//     case 'd':
+//     /* code */
+//     break;
+//     case 'e':
+//     /* code */
+//     break;
+//     case 'f':
+//     /* code */
+//     break;
+//     case 'g':
+//     /* code */
+//     break;
+//   default:
+//     break;
+//   }
+// }
+
 void init_shape_snake_x_params(matrix_t *a) {
   s21_create_matrix(4, 8, a);
 
@@ -191,15 +190,6 @@ void init_shape_snake_x_params(matrix_t *a) {
   a->width = 8;
   a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2) + 1;
-
-  // a->matrix[0][0] = 0;
-  // a->matrix[0][1] = 0;
-  // a->matrix[0][2] = 0;
-  // a->matrix[0][3] = 0;
-  // a->matrix[0][4] = 0;
-  // a->matrix[0][5] = 0;
-  // a->matrix[0][6] = 0;
-  // a->matrix[0][7] = 0;
 
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
@@ -211,22 +201,124 @@ void init_shape_snake_x_params(matrix_t *a) {
   a->matrix[0][7] = ']';
 }
 
-void init_shape_snake_y_params(matrix_t *a) {
-  s21_create_matrix(4, 8, a);
+// void init_shape_snake_y_params(matrix_t *a) {
+//   s21_create_matrix(4, 8, a);
 
-  a->height = 4;
-  a->width = 2;
-  a->starty = 0 + 2;
+//   a->height = 4;
+//   a->width = 2;
+//   a->starty = 0 + 2;
+//   a->startx = ((COLS - a->width) / 2) + 1;
+
+//   a->matrix[0][0] = '[';
+//   a->matrix[0][1] = ']';
+//   a->matrix[1][0] = '[';
+//   a->matrix[1][1] = ']';
+//   a->matrix[2][0] = '[';
+//   a->matrix[2][1] = ']';
+//   a->matrix[3][0] = '[';
+//   a->matrix[3][1] = ']';
+// }
+
+void create_y_snake(matrix_t *y_snake) {
+  s21_create_matrix(2, 4, y_snake);
+  y_snake->matrix[0][0] = '[';
+  y_snake->matrix[0][1] = ']';
+  y_snake->matrix[1][0] = '[';
+  y_snake->matrix[1][1] = ']';
+  y_snake->matrix[2][0] = '[';
+  y_snake->matrix[2][1] = ']';
+  y_snake->matrix[3][0] = '[';
+  y_snake->matrix[3][1] = ']';
+  // y_snake->height = 1;
+  // y_snake->width = 8;
+
+  // return *y_snake;
+}
+
+void create_x_snake(matrix_t *x_snake) {
+  s21_create_matrix(1, 8, x_snake);
+  x_snake->matrix[0][0] = '[';
+  x_snake->matrix[0][1] = ']';
+  x_snake->matrix[0][2] = '[';
+  x_snake->matrix[0][3] = ']';
+  x_snake->matrix[0][4] = '[';
+  x_snake->matrix[0][5] = ']';
+  x_snake->matrix[0][6] = '[';
+  x_snake->matrix[0][7] = ']';
+  // return *x_snake;
+}
+
+// void init_shape_snake_x_params(matrix_t *a) {
+//   s21_create_matrix(4, 8, a);
+
+//   a->height = 1;
+//   a->width = 8;
+//   a->starty = 0 + 1;
+//   a->startx = ((COLS - a->width) / 2) + 1;
+
+//   // a->matrix[0][0] = 0;
+//   // a->matrix[0][1] = 0;
+//   // a->matrix[0][2] = 0;
+//   // a->matrix[0][3] = 0;
+//   // a->matrix[0][4] = 0;
+//   // a->matrix[0][5] = 0;
+//   // a->matrix[0][6] = 0;
+//   // a->matrix[0][7] = 0;
+
+//   a->matrix[0][0] = '[';
+//   a->matrix[0][1] = ']';
+//   a->matrix[0][2] = '[';
+//   a->matrix[0][3] = ']';
+//   a->matrix[0][4] = '[';
+//   a->matrix[0][5] = ']';
+//   a->matrix[0][6] = '[';
+//   a->matrix[0][7] = ']';
+// }
+
+void init_shape_random(matrix_t *a) {
+  a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2) + 1;
+  a->height = a->rows;
+  a->width = a->columns;
 
-  a->matrix[0][0] = '[';
-  a->matrix[0][1] = ']';
-  a->matrix[1][0] = '[';
-  a->matrix[1][1] = ']';
-  a->matrix[2][0] = '[';
-  a->matrix[2][1] = ']';
-  a->matrix[3][0] = '[';
-  a->matrix[3][1] = ']';
+  // a->matrix[0][0] = '[';
+  // a->matrix[0][1] = ']';
+  // a->matrix[1][0] = '[';
+  // a->matrix[1][1] = ']';
+  // a->matrix[2][0] = '[';
+  // a->matrix[2][1] = ']';
+  // a->matrix[3][0] = '[';
+  // a->matrix[3][1] = ']';
+}
+
+void spawn(matrix_t *a) {
+  char shape_list[7] = {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
+  char chaa = shape_list[rand() % 8];
+  switch (chaa) {
+    case 'a':
+      init_shape_snake_x_params(a);
+      break;
+    case 'b':
+      init_shape_snake_x_params(a);
+      break;
+    case 'c':
+      init_shape_snake_x_params(a);
+      break;
+    case 'd':
+      init_shape_snake_x_params(a);
+      break;
+    case 'e':
+      init_shape_snake_x_params(a);
+      break;
+    case 'f':
+      init_shape_snake_x_params(a);
+      break;
+    case 'g':
+      init_shape_snake_x_params(a);
+      break;
+    default:
+      break;
+  }
 }
 
 void create_shape(matrix_t *a, bool flag) {

@@ -124,36 +124,44 @@ int main(int argc, char *argv[]) {
   // init_pair(1, COLOR_CYAN, COLOR_BLACK);
 
   init_win_params(&win);
+  void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
   // init_shape_snake_y_params(&a);
   attron(COLOR_PAIR(1));
-  printw("Press F1 to exit");
+  printw("");
   refresh();
   attroff(COLOR_PAIR(1));
   create_box(&win, TRUE);
   create_shape(&a, TRUE);
-  // s21_print_matrix(a, loc_win);
+  // s21_print_matrix(a, loc_win);s
   while ((ch = getch()) != KEY_F(1)) {
     // s21_print_matrix(a, loc_win);
     create_box(&win, TRUE);
     // create_shape(&a, TRUE);
     switch (ch) {
       case KEY_LEFT:
-        create_shape(&a, FALSE);
-        --a.startx;
-        create_shape(&a, TRUE);
+        if (a.startx > (win.border.ls - (win.width - a.width))) {
+          create_shape(&a, FALSE);
+          --a.startx;
+          create_shape(&a, TRUE);
+        }
+
         break;
       case KEY_RIGHT:
-        create_shape(&a, FALSE);
-        ++a.startx;
-        create_shape(&a, TRUE);
+        if (a.startx < (win.border.rs - 1)) {
+          create_shape(&a, FALSE);
+          ++a.startx;
+          create_shape(&a, TRUE);
+        }
         break;
 
       case KEY_DOWN:
-        create_shape(&a, FALSE);
-        ++a.starty;
-        create_shape(&a, TRUE);
-        break;
+        if (a.starty < (win.height - 1)) {
+          create_shape(&a, FALSE);
+          ++a.starty;
+          create_shape(&a, TRUE);
+          break;
+        }
     }
   }
 
@@ -181,7 +189,7 @@ void init_shape_snake_x_params(matrix_t *a) {
 
   a->height = 1;
   a->width = 8;
-  a->starty = 0 + 2;
+  a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2) + 1;
 
   // a->matrix[0][0] = 0;
@@ -233,40 +241,6 @@ void create_shape(matrix_t *a, bool flag) {
     for (i = 0; i < a->height; ++i) {
       for (j = 0; j < a->width; ++j) {
         mvaddch(y + i, x + j, a->matrix[i][j]);
-        // mvaddch(y + 1, x + 1, a->matrix[0][1]);
-        // mvaddch(y + 1, x + 2, a->matrix[0][2]);
-        // mvaddch(y + 1, x + 3, a->matrix[0][3]);
-        // mvaddch(y + 1, x + 4, a->matrix[0][4]);
-        // mvaddch(y + 1, x + 5, a->matrix[0][5]);
-        // mvaddch(y + 1, x + 6, a->matrix[0][6]);
-        // mvaddch(y + 1, x + 7, a->matrix[0][7]);
-
-        // mvaddch(y + 1, x, a->matrix[1][0]);
-        // mvaddch(y + 1, x + 1, a->matrix[1][1]);
-        // mvaddch(y + 1, x + 2, a->matrix[1][2]);
-        // mvaddch(y + 1, x + 3, a->matrix[1][3]);
-        // mvaddch(y + 1, x + 4, a->matrix[1][4]);
-        // mvaddch(y + 1, x + 5, a->matrix[1][5]);
-        // mvaddch(y + 1, x + 6, a->matrix[1][6]);
-        // mvaddch(y + 1, x + 7, a->matrix[1][7]);
-
-        // mvaddch(y + 1, x, a->matrix[2][0]);
-        // mvaddch(y + 1, x + 1, a->matrix[2][1]);
-        // mvaddch(y + 1, x + 2, a->matrix[3][2]);
-        // mvaddch(y + 1, x + 3, a->matrix[0][3]);
-        // mvaddch(y + 1, x + 4, a->matrix[0][4]);
-        // mvaddch(y + 1, x + 5, a->matrix[0][5]);
-        // mvaddch(y + 1, x + 6, a->matrix[0][6]);
-        // mvaddch(y + 1, x + 7, a->matrix[0][7]);
-
-        // mvaddch(y + 0, x + 7, a->matrix[0][7]);
-        // mvaddch(y + 0, x + 8, a->matrix[0][8]);
-        // mvaddch(y + 1, x + 7, a->matrix[1][7]);
-        // mvaddch(y + 1, x + 8, a->matrix[1][8]);
-        // mvaddch(y + 2, x + 7, a->matrix[2][7]);
-        // mvaddch(y + 2, x + 8, a->matrix[2][8]);
-        // mvaddch(y + 3, x + 7, a->matrix[3][7]);
-        // mvaddch(y + 3, x + 8, a->matrix[3][8]);
       }
     }
   } else {
@@ -277,6 +251,14 @@ void create_shape(matrix_t *a, bool flag) {
     }
     refresh();
   }
+}
+
+void print_win_params(WIN *p_win) {
+#ifdef _DEBUG
+  mvprintw(25, 0, "%d %d %d %d %d", p_win->startx, p_win->starty, p_win->width,
+           p_win->height);
+  refresh();
+#endif
 }
 
 void create_box(WIN *p_win, bool flag) {

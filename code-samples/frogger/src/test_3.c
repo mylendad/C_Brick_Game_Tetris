@@ -6,6 +6,7 @@ typedef struct _win_border_struct {
 } WIN_BORDER;
 
 typedef struct _WIN_struct {
+  // char **matrix;
   int startx, starty;
   int height, width;
   WIN_BORDER border;
@@ -104,19 +105,24 @@ int main(int argc, char *argv[]) {
         break;
 
       case KEY_DOWN:
-        if (a.starty < (win.height - a.height)) {
-          if (a.starty + 1 != '[') {
-            create_shape(&a, FALSE);
-            ++a.starty;
-            // void print_win_params(WIN * p_win);
-            create_shape(&a, TRUE);
-          }
-          break;
-
+        if (a.starty < (win.height - a.height) &&
+            window.matrix[a.starty][a.startx] <= 90) {  // sega if +2)
+          // if (window.matrix[a.starty + 3][a.startx] <= 90) {  // sega
+          create_shape(&a, FALSE);
+          ++a.starty;
+          // void print_win_params(WIN * p_swin);
+          create_shape(&a, TRUE);
         } else {
-          copy_matrix_a_to_window(&window, &a);
+          copy_matrix_a_to_window(&window, &a);  // change
           spawn(&a);
         }
+        break;
+
+        // else {
+        //   copy_matrix_a_to_window(&window, &a);
+        //   s21_print_matrix(window);
+        //   spawn(&a);
+        // }
     }
   }
   endwin();

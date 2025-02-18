@@ -56,9 +56,9 @@ void s21_print_matrix(WIN A) {  // change to mvprintw or wprint?
   for (int i = 0; i < A.height; i++) {
     for (int j = 0; j < A.width; j++) {
       if (j == A.width - 1)
-        printw("%c\n", A.matrix[i][j]);
+        mvprintw(5, 5, "%c\n", A.matrix[i][j]);
       else
-        printw("%c", A.matrix[i][j]);
+        mvprintw(5, 5, "%c", A.matrix[i][j]);
     }
   }
 }
@@ -80,7 +80,7 @@ int main() {
   keypad(stdscr, TRUE);
   // noecho();
   init_win_params(&win);
-  void print_win_params(WIN * p_win);
+  // void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
   // attron(COLOR_PAIR(1));
   // printw("");
@@ -110,28 +110,39 @@ int main() {
         break;
 
       case KEY_DOWN:
+        //   if (a.starty < (win.height - a.height) &&
+        //       (win.matrix[a.starty + 2][a.startx] == 0 &&
+        //        win.matrix[a.starty + 2][a.startx] ==
+        //            0)) {  // sega if +2) выход за массив?
+        // for (int i = a.height - 1;;) {
+        // for (int j = 0; j < a.width; j++) {
         if (a.starty < (win.height - a.height) &&
-            (win.matrix[a.starty][a.startx] != ']' &&
-             win.matrix[a.starty][a.startx] !=
-                 '[')) {  // sega if +2) выход за массив?
-                          // if (a.starty < (win.height - a.height)) {
-          // if (win.matrix[a.starty + 3][a.startx] <= 90) {  // sega
+            mvinch(a.starty + a.height, a.startx) != '[' &&
+            mvinch(a.starty + a.height, a.startx) != ']') {
           create_shape(&a, FALSE);
           ++a.starty;
           // void print_win_params(WIN * p_swin);
           create_shape(&a, TRUE);
         } else {
-          copy_matrix_a_to_window(&win, &a);  // change
+          // copy_matrix_a_to_window(&win, &a);
           // s21_print_matrix(win);
           spawn(&a);
         }
-        break;
-
-        // else {s
-        //   copy_matrix_a_to_window(&win, &a);
-        //   s21_print_matrix(win);
+        // }
+        // if (a.starty < (win.height - a.height) &&
+        //     mvinch(a.starty + 1, a.startx) != '[' &&
+        //     mvinch(a.starty + 1, a.startx) != ']') {
+        //   create_shape(&a, FALSE);
+        //   ++a.starty;
+        //   // void print_win_params(WIN * p_swin);
+        //   create_shape(&a, TRUE);
+        // }
+        // else {
+        //   // copy_matrix_a_to_window(&win, &a);
+        //   // s21_print_matrix(win);
         //   spawn(&a);
         // }
+        break;
     }
   }
   endwin();
@@ -157,7 +168,9 @@ void copy_matrix_a_to_window(WIN *win, WIN *a) {
 void init_win_params(WIN *p_win) {
   p_win->height = 20;
   p_win->width = 20;
-  s21_create_matrix(p_win->height, p_win->width, 0, 0, p_win);
+  // s21_create_matrix(p_win->height, p_win->width, 0, (COLS - p_win->width) /
+  // 2,
+  //                   p_win);
   p_win->starty = 0;
   p_win->startx = (COLS - p_win->width) / 2;
   p_win->border.ls = '|';

@@ -6,52 +6,56 @@ typedef struct _win_border_struct {
 } WIN_BORDER;
 
 typedef struct _WIN_struct {
-  // char **matrix;
+  char **matrix;
   int startx, starty;
   int height, width;
   WIN_BORDER border;
 } WIN;
 
-typedef struct matrix_struct {
-  int startx, starty;
-  int height, width;
-  char **matrix;
-  int rows;
-  int columns;
-} matrix_t;
+// typedef struct matrix_struct {  // переделать ровс и колумн убрать или вообще
+//                                 // объеденить с WIN
+//   int startx, starty;
+//   int height, width;
+//   char **matrix;
+//   int height;
+//   int columns;
+// } WIN;
 
-void spawn(matrix_t *a);
-void create_shape(matrix_t *a, bool flag);
-void init_shape_snake_x_params(matrix_t *a);
-void init_shape_snake_y_params(matrix_t *a);
-void create_x_snake(matrix_t *x_snake);
-void create_y_snake(matrix_t *y_snake);
-void init_shape_random(matrix_t *a);
-void copy_matrix_a_to_window(matrix_t *window, matrix_t *a);
+void spawn(WIN *a);
+void create_shape(WIN *a, bool flag);
+void init_shape_snake_x_params(WIN *a);
+void init_shape_snake_y_params(WIN *a);
+void create_x_snake(WIN *x_snake);
+void create_y_snake(WIN *y_snake);
+void init_shape_random(WIN *a);
+void copy_matrix_a_to_window(WIN *win, WIN *a);
 
-int s21_create_matrix(int rows, int columns, matrix_t *result) {
+int s21_create_matrix(int height, int columns, int startx, int starty,
+                      WIN *result) {
   int res = OK;
-  if (rows < 1 || columns < 1 || result == NULL) {
+  if (height < 1 || columns < 1 || result == NULL) {
     res = 1;
   } else {
-    result->rows = rows;
-    result->columns = columns;
-    result->matrix = (char **)calloc(rows, sizeof(char *));
-    for (int i = 0; i < rows; i++) {
+    result->startx = startx;
+    result->starty = starty;
+    result->height = height;
+    result->width = columns;
+    result->matrix = (char **)calloc(height, sizeof(char *));
+    for (int i = 0; i < height; i++) {
       result->matrix[i] = (char *)calloc(columns, sizeof(char));
     }
   }
   return res;
 }
 
-void s21_print_matrix(matrix_t A) {  // change to mvprintw or wprint?
-  if (A.rows < 1 || A.columns < 1) {
+void s21_print_matrix(WIN A) {  // change to mvprintw or wprint?
+  if (A.height < 1 || A.width < 1) {
     return;
   }
 
-  for (int i = 0; i < A.rows; i++) {
-    for (int j = 0; j < A.columns; j++) {
-      if (j == A.columns - 1)
+  for (int i = 0; i < A.height; i++) {
+    for (int j = 0; j < A.width; j++) {
+      if (j == A.width - 1)
         printw("%c\n", A.matrix[i][j]);
       else
         printw("%c", A.matrix[i][j]);
@@ -63,31 +67,32 @@ void init_win_params(WIN *p_win);
 void print_win_params(WIN *p_win);
 void create_box(WIN *win, bool flag);
 
-int main(int argc, char *argv[]) {
-  matrix_t a;
-  matrix_t window;
-  s21_create_matrix(20, 20, &window);
+int main() {
+  WIN a;
+  // WIN win;
+  // s21_create_matrix(20, 20,  0,0, &win);
   WIN win;
+
   int ch;
   initscr();
   cbreak();
 
   keypad(stdscr, TRUE);
-  noecho();
+  // noecho();
   init_win_params(&win);
   void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
-  attron(COLOR_PAIR(1));
-  printw("");
+  // attron(COLOR_PAIR(1));
+  // printw("");
   refresh();
-  attroff(COLOR_PAIR(1));
+  // attroff(COLOR_PAIR(1));
   create_box(&win, TRUE);
   create_shape(&a, TRUE);
   while ((ch = getch()) != KEY_F(1)) {
     create_box(&win, TRUE);
     switch (ch) {
       case KEY_LEFT:
-        if (a.startx > (win.border.ls - (win.width - a.width))) {
+        if (a.startx > (win.startx + 2)) {
           create_shape(&a, FALSE);
           --a.startx;
           --a.startx;
@@ -96,7 +101,7 @@ int main(int argc, char *argv[]) {
 
         break;
       case KEY_RIGHT:
-        if (a.startx < (win.border.rs - 1)) {
+        if (a.startx < (win.startx + (win.width - a.width))) {
           create_shape(&a, FALSE);
           ++a.startx;
           ++a.startx;
@@ -106,21 +111,25 @@ int main(int argc, char *argv[]) {
 
       case KEY_DOWN:
         if (a.starty < (win.height - a.height) &&
-            window.matrix[a.starty][a.startx] <= 90) {  // sega if +2)
-          // if (window.matrix[a.starty + 3][a.startx] <= 90) {  // sega
+            (win.matrix[a.starty][a.startx] != ']' &&
+             win.matrix[a.starty][a.startx] !=
+                 '[')) {  // sega if +2) выход за массив?
+                          // if (a.starty < (win.height - a.height)) {
+          // if (win.matrix[a.starty + 3][a.startx] <= 90) {  // sega
           create_shape(&a, FALSE);
           ++a.starty;
           // void print_win_params(WIN * p_swin);
           create_shape(&a, TRUE);
         } else {
-          copy_matrix_a_to_window(&window, &a);  // change
+          copy_matrix_a_to_window(&win, &a);  // change
+          // s21_print_matrix(win);
           spawn(&a);
         }
         break;
 
-        // else {
-        //   copy_matrix_a_to_window(&window, &a);
-        //   s21_print_matrix(window);
+        // else {s
+        //   copy_matrix_a_to_window(&win, &a);
+        //   s21_print_matrix(win);
         //   spawn(&a);
         // }
     }
@@ -129,17 +138,17 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void copy_matrix_a_to_window(matrix_t *window, matrix_t *a) {
-  for (int i = 0; i < a->rows; i++) {
-    for (int j = 0; j < a->columns; j++) {
+void copy_matrix_a_to_window(WIN *win, WIN *a) {
+  for (int i = 0; i < a->height; i++) {
+    for (int j = 0; j < a->width; j++) {
       int screen_y = a->starty + i;
       int screen_x = a->startx + j;
 
       chtype ch = mvinch(screen_y, screen_x);
 
-      if (screen_y >= 0 && screen_y < window->rows && screen_x >= 0 &&
-          screen_x < window->columns) {
-        window->matrix[screen_y][screen_x] = (char)ch;
+      if (screen_y >= 0 && screen_y < win->height && screen_x >= 0 &&
+          screen_x < win->width) {
+        win->matrix[screen_y][screen_x] = (char)ch;
       }
     }
   }
@@ -148,6 +157,7 @@ void copy_matrix_a_to_window(matrix_t *window, matrix_t *a) {
 void init_win_params(WIN *p_win) {
   p_win->height = 20;
   p_win->width = 20;
+  s21_create_matrix(p_win->height, p_win->width, 0, 0, p_win);
   p_win->starty = 0;
   p_win->startx = (COLS - p_win->width) / 2;
   p_win->border.ls = '|';
@@ -160,8 +170,8 @@ void init_win_params(WIN *p_win) {
   p_win->border.br = ACS_LRCORNER;
 }
 
-void init_shape_snake_x_params(matrix_t *a) {
-  s21_create_matrix(4, 8, a);
+void init_shape_snake_x_params(WIN *a) {
+  s21_create_matrix(4, 8, 0, 0, a);
 
   a->height = 1;
   a->width = 8;
@@ -178,8 +188,8 @@ void init_shape_snake_x_params(matrix_t *a) {
   a->matrix[0][7] = ']';
 }
 
-void init_shape_snake_y_params(matrix_t *a) {
-  s21_create_matrix(4, 8, a);
+void init_shape_snake_y_params(WIN *a) {
+  s21_create_matrix(4, 8, 0, 0, a);
 
   a->height = 4;
   a->width = 2;
@@ -196,7 +206,7 @@ void init_shape_snake_y_params(matrix_t *a) {
   a->matrix[3][1] = ']';
 }
 
-void spawn(matrix_t *a) {
+void spawn(WIN *a) {
   char shape_list[7] = {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
   char chaa = shape_list[rand() % 8];
   switch (chaa) {
@@ -226,7 +236,7 @@ void spawn(matrix_t *a) {
   }
 }
 
-void create_shape(matrix_t *a, bool flag) {
+void create_shape(WIN *a, bool flag) {
   int i, j;
   int x, y, w, h;
   x = a->startx;

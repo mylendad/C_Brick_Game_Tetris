@@ -83,7 +83,7 @@ int main() {
   // void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
   // attron(COLOR_PAIR(1));
-  // printw("");
+  // printw("");sss
   refresh();
   // attroff(COLOR_PAIR(1));
   create_box(&win, TRUE);
@@ -126,6 +126,12 @@ int main() {
         } else {
           // copy_matrix_a_to_window(&win, &a);
           // s21_print_matrix(win);
+          // for (int i = 0; i < a.height; i++) {
+          //   for (int j = 0; j < a.width; j++) {
+          //   a.matrix[i][j];
+          //   }
+          // }
+          // wattrset(&win, A_CHARTEXT);
           spawn(&a);
         }
         // }
@@ -167,7 +173,7 @@ void copy_matrix_a_to_window(WIN *win, WIN *a) {
 
 void init_win_params(WIN *p_win) {
   p_win->height = 20;
-  p_win->width = 20;
+  p_win->width = 21;
   // s21_create_matrix(p_win->height, p_win->width, 0, (COLS - p_win->width) /
   // 2,
   //                   p_win);
@@ -189,7 +195,7 @@ void init_shape_snake_x_params(WIN *a) {
   a->height = 1;
   a->width = 8;
   a->starty = 0 + 1;
-  a->startx = ((COLS - a->width) / 2) + 1;
+  a->startx = ((COLS - a->width) / 2);
 
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
@@ -206,7 +212,7 @@ void init_shape_snake_y_params(WIN *a) {
 
   a->height = 4;
   a->width = 2;
-  a->starty = 0 + 2;
+  a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2) + 1;
 
   a->matrix[0][0] = '[';

@@ -2,13 +2,15 @@
 #include <stdlib.h>
 
 typedef struct _win_border_struct {
-  chtype ls, rs, ts, bs, tl, tr, bl, br;
+  chtype ls, rs, ts, bs, tl, tr, bl, br, xx;
 } WIN_BORDER;
 
 typedef struct _WIN_struct {
   char **matrix;
   int startx, starty;
   int height, width;
+  int one_bottom_x, two_bottom_x, three_bottom_x, four_bottom_x, one_bottom_y,
+      two_bottom_y, three_bottom_y, four_bottom_y;
   WIN_BORDER border;
 } WIN;
 
@@ -117,10 +119,27 @@ int main() {
         // for (int i = a.height - 1;;) {
         // for (int j = 0; j < a.width; j++) {
         if (a.starty < (win.height - a.height) &&
-            mvinch(a.starty + a.height, a.startx) != '[' &&
-            mvinch(a.starty + a.height, a.startx) != ']') {
+            // mvinch(a.starty + a.height, a.startx) != '[' &&
+            // mvinch(a.starty + a.height, a.startx) != ']') {
+            mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[' &&
+            mvinch(a.two_bottom_y + 1, a.two_bottom_x) != '[' &&
+            mvinch(a.three_bottom_y + 1, a.three_bottom_x) != '[' &&
+            mvinch(a.four_bottom_y + 1, a.four_bottom_x) != '[') {
           create_shape(&a, FALSE);
-          ++a.starty;
+          if (a.border.xx == 'a') {
+            ++a.starty;
+            // ++a.one_bottom_x;
+            ++a.one_bottom_y;
+            // ++a.two_bottom_x;
+            ++a.two_bottom_y;
+            // ++a.three_bottom_x;
+            ++a.three_bottom_y;
+            // ++a.four_bottom_x;
+            ++a.four_bottom_y;
+            create_shape(&a, TRUE);
+          } else if (a.border.xx == 'b')
+            ++a.starty;
+          ++a.one_bottom_y;
           // void print_win_params(WIN * p_swin);
           create_shape(&a, TRUE);
         } else {
@@ -191,12 +210,20 @@ void init_win_params(WIN *p_win) {
 
 void init_shape_snake_x_params(WIN *a) {
   s21_create_matrix(4, 8, 0, 0, a);
-
+  a->border.xx = 'a';
   a->height = 1;
   a->width = 8;
   a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2);
 
+  a->one_bottom_x = a->startx;
+  a->one_bottom_y = a->starty;
+  a->two_bottom_x = a->startx + 2;
+  a->two_bottom_y = a->starty;
+  a->three_bottom_x = a->startx + 4;
+  a->three_bottom_y = a->starty;
+  a->four_bottom_x = a->startx + 6;
+  a->four_bottom_y = a->starty;
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
   a->matrix[0][2] = '[';
@@ -207,14 +234,25 @@ void init_shape_snake_x_params(WIN *a) {
   a->matrix[0][7] = ']';
 }
 
-void init_shape_snake_y_params(WIN *a) {
+void init_shape_snake_y_params(WIN *a) {  // допилить перемещение точек
   s21_create_matrix(4, 8, 0, 0, a);
-
+  a->border.xx = 'b';
   a->height = 4;
   a->width = 2;
   a->starty = 0 + 1;
   a->startx = ((COLS - a->width) / 2) + 1;
-
+  // a->one_bottom = a->matrix[3][0];
+  // a->two_bottom = a->matrix[3][0];
+  // a->three_bottom = a->matrix[3][0];
+  // a->four_bottom = a->matrix[3][0];
+  a->one_bottom_x = a->startx;
+  a->one_bottom_y = a->starty + 3;
+  // a->two_bottom_x = a->startx;
+  // a->two_bottom_y = a->starty;
+  // a->three_bottom_x = a->startx;
+  // a->three_bottom_y = a->starty;
+  // a->four_bottom_x = a->startx;
+  // a->four_bottom_y = a->starty;
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
   a->matrix[1][0] = '[';
@@ -239,7 +277,7 @@ void spawn(WIN *a) {
       init_shape_snake_x_params(a);
       break;
     case 'd':
-      init_shape_snake_y_params(a);
+      init_shape_snake_x_params(a);
       break;
     case 'e':
       init_shape_snake_y_params(a);

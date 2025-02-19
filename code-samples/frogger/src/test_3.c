@@ -118,27 +118,45 @@ int main() {
         //            0)) {  // sega if +2) выход за массив?
         // for (int i = a.height - 1;;) {
         // for (int j = 0; j < a.width; j++) {
-        if (a.starty < (win.height - a.height) &&
-            // mvinch(a.starty + a.height, a.startx) != '[' &&
-            // mvinch(a.starty + a.height, a.startx) != ']') {
+        if (a.border.xx == 'a' && a.starty < (win.height - a.height) &&
             mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[' &&
             mvinch(a.two_bottom_y + 1, a.two_bottom_x) != '[' &&
             mvinch(a.three_bottom_y + 1, a.three_bottom_x) != '[' &&
             mvinch(a.four_bottom_y + 1, a.four_bottom_x) != '[') {
           create_shape(&a, FALSE);
-          if (a.border.xx == 'a') {
-            ++a.starty;
-            // ++a.one_bottom_x;
-            ++a.one_bottom_y;
-            // ++a.two_bottom_x;
-            ++a.two_bottom_y;
-            // ++a.three_bottom_x;
-            ++a.three_bottom_y;
-            // ++a.four_bottom_x;
-            ++a.four_bottom_y;
-            create_shape(&a, TRUE);
-          } else if (a.border.xx == 'b')
-            ++a.starty;
+          // if (a.border.xx == 'a') {
+          ++a.starty;
+          // ++a.one_bottom_x;
+          ++a.one_bottom_y;
+          // ++a.two_bottom_x;
+          ++a.two_bottom_y;
+          // ++a.three_bottom_x;
+          ++a.three_bottom_y;
+          // ++a.four_bottom_x;
+          ++a.four_bottom_y;
+          create_shape(&a, TRUE);
+        }
+        // else {
+        //   // copy_matrix_a_to_window(&win, &a);
+        //   // s21_print_matrix(win);
+        //   // for (int i = 0; i < a.height; i++) {
+        //   //   for (int j = 0; j < a.width; j++) {
+        //   //   a.matrix[i][j];
+        //   //   }
+        //   // }
+        //   // wattrset(&win, A_CHARTEXT);
+        //   spawn(&a);
+        // }
+        else if (a.border.xx == 'b' && a.starty < (win.height - a.height) &&
+                 // mvinch(a.starty + a.height, a.startx) != '[' &&
+                 // mvinch(a.starty + a.height, a.startx) != ']') {
+                 mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[') {
+          // if (a.starty < (win.height - a.height) &&
+          //     // mvinch(a.starty + a.height, a.startx) != '[' &&
+          //     // mvinch(a.starty + a.height, a.startx) != ']') {
+          //     mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[') {
+          create_shape(&a, FALSE);
+          ++a.starty;
           ++a.one_bottom_y;
           // void print_win_params(WIN * p_swin);
           create_shape(&a, TRUE);
@@ -153,6 +171,18 @@ int main() {
           // wattrset(&win, A_CHARTEXT);
           spawn(&a);
         }
+        // }
+        // else {
+        //   // copy_matrix_a_to_window(&win, &a);
+        //   // s21_print_matrix(win);
+        //   // for (int i = 0; i < a.height; i++) {
+        //   //   for (int j = 0; j < a.width; j++) {
+        //   //   a.matrix[i][j];
+        //   //   }
+        //   // }
+        //   // wattrset(&win, A_CHARTEXT);
+        //   spawn(&a);
+        // }
         // }
         // if (a.starty < (win.height - a.height) &&
         //     mvinch(a.starty + 1, a.startx) != '[' &&

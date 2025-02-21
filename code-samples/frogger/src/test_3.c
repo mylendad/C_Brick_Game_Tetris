@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef struct _win_border_struct {
   chtype ls, rs, ts, bs, tl, tr, bl, br, xx;
@@ -9,8 +10,11 @@ typedef struct _WIN_struct {
   char **matrix;
   int startx, starty;
   int height, width;
-  int one_bottom_x, two_bottom_x, three_bottom_x, four_bottom_x, one_bottom_y,
-      two_bottom_y, three_bottom_y, four_bottom_y;
+  int two_right_x, three_right_x, four_right_x, two_right_y, three_right_y,
+      two_left_x, three_left_x, four_left_x, two_left_y, three_left_y,
+      four_left_y, four_right_y, one_right_x, one_right_y, one_left_x,
+      one_left_y, one_bottom_x, two_bottom_x, three_bottom_x, four_bottom_x,
+      one_bottom_y, two_bottom_y, three_bottom_y, four_bottom_y;
   WIN_BORDER border;
 } WIN;
 
@@ -20,9 +24,16 @@ typedef struct _WIN_struct {
 //   int height, width;
 //   char **matrix;
 //   int height;
-//   int columns;
+//   int width;
 // } WIN;
-
+void down(WIN *a, WIN *win);
+void logic_x(WIN *a);
+void logic_y(WIN *a);
+bool check_collision(WIN *a);
+void update_coordinates(WIN *a);
+void start_x(WIN *a);
+void start_y(WIN *a);
+void rotate(WIN *a);
 void spawn(WIN *a);
 void create_shape(WIN *a, bool flag);
 void init_shape_snake_x_params(WIN *a);
@@ -32,19 +43,19 @@ void create_y_snake(WIN *y_snake);
 void init_shape_random(WIN *a);
 void copy_matrix_a_to_window(WIN *win, WIN *a);
 
-int s21_create_matrix(int height, int columns, int startx, int starty,
+int s21_create_matrix(int height, int width, int startx, int starty,
                       WIN *result) {
   int res = OK;
-  if (height < 1 || columns < 1 || result == NULL) {
+  if (height < 1 || width < 1 || result == NULL) {
     res = 1;
   } else {
     result->startx = startx;
     result->starty = starty;
     result->height = height;
-    result->width = columns;
+    result->width = width;
     result->matrix = (char **)calloc(height, sizeof(char *));
     for (int i = 0; i < height; i++) {
-      result->matrix[i] = (char *)calloc(columns, sizeof(char));
+      result->matrix[i] = (char *)calloc(width, sizeof(char));
     }
   }
   return res;
@@ -80,152 +91,211 @@ int main() {
   cbreak();
 
   keypad(stdscr, TRUE);
-  // noecho();
+  noecho();
+  // curs_set(0);
+  nodelay(stdscr, TRUE);
   init_win_params(&win);
   // void print_win_params(WIN * p_win);
   init_shape_snake_x_params(&a);
+  start_x(&a);
+  logic_x(&a);
   // attron(COLOR_PAIR(1));
   // printw("");sss
   refresh();
   // attroff(COLOR_PAIR(1));
   create_box(&win, TRUE);
   create_shape(&a, TRUE);
-  while ((ch = getch()) != KEY_F(1)) {
-    create_box(&win, TRUE);
-    switch (ch) {
-      case KEY_LEFT:
-        if (a.startx > (win.startx + 2)) {
-          create_shape(&a, FALSE);
-          --a.startx;
-          --a.startx;
-          create_shape(&a, TRUE);
-        }
+  // start(&a);
+  int timer = 0;
+  while (1) {
+    // create_box(&win, TRUE);
+    // create_shape(&a, TRUE);
+    // down(&a, &win);
+    // usleep(500000);
 
-        break;
-      case KEY_RIGHT:
-        if (a.startx < (win.startx + (win.width - a.width))) {
-          create_shape(&a, FALSE);
-          ++a.startx;
-          ++a.startx;
-          create_shape(&a, TRUE);
-        }
-        break;
+    int control = getch();
+    // while ((ch = getch()) != KEY_F(1)) {
+    // switch (ch) {
+    if (control != ERR) {
+      if (control == KEY_UP) {
+        create_shape(&a, FALSE);
+        rotate(&a);
 
-      case KEY_DOWN:
-        //   if (a.starty < (win.height - a.height) &&
-        //       (win.matrix[a.starty + 2][a.startx] == 0 &&
-        //        win.matrix[a.starty + 2][a.startx] ==
-        //            0)) {  // sega if +2) выход за массив?
-        // for (int i = a.height - 1;;) {
-        // for (int j = 0; j < a.width; j++) {
-        if (a.border.xx == 'a' && a.starty < (win.height - a.height) &&
-            mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[' &&
-            mvinch(a.two_bottom_y + 1, a.two_bottom_x) != '[' &&
-            mvinch(a.three_bottom_y + 1, a.three_bottom_x) != '[' &&
-            mvinch(a.four_bottom_y + 1, a.four_bottom_x) != '[') {
-          create_shape(&a, FALSE);
-          // if (a.border.xx == 'a') {
-          ++a.starty;
-          // ++a.one_bottom_x;
-          ++a.one_bottom_y;
-          // ++a.two_bottom_x;
-          ++a.two_bottom_y;
-          // ++a.three_bottom_x;
-          ++a.three_bottom_y;
-          // ++a.four_bottom_x;
-          ++a.four_bottom_y;
-          create_shape(&a, TRUE);
-        }
-        // else {
-        //   // copy_matrix_a_to_window(&win, &a);
-        //   // s21_print_matrix(win);
-        //   // for (int i = 0; i < a.height; i++) {
-        //   //   for (int j = 0; j < a.width; j++) {
-        //   //   a.matrix[i][j];
-        //   //   }
-        //   // }
-        //   // wattrset(&win, A_CHARTEXT);
-        //   spawn(&a);
+        // if (check_collision(&win, &a)) {
+        //   rotate(&a);
+        //   rotate(&a);
         // }
-        else if (a.border.xx == 'b' && a.starty < (win.height - a.height) &&
-                 // mvinch(a.starty + a.height, a.startx) != '[' &&
-                 // mvinch(a.starty + a.height, a.startx) != ']') {
-                 mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[') {
-          // if (a.starty < (win.height - a.height) &&
-          //     // mvinch(a.starty + a.height, a.startx) != '[' &&
-          //     // mvinch(a.starty + a.height, a.startx) != ']') {
-          //     mvinch(a.one_bottom_y + 1, a.one_bottom_x) != '[') {
+        create_shape(&a, TRUE);
+      }
+      // break;
+      if (control == KEY_LEFT) {
+        if (a.border.xx == 'b' && (a.startx > (win.startx + 2)) &&
+            mvinch(a.one_left_y, a.one_left_x - 1) != ']' &&
+            mvinch(a.two_left_y, a.two_left_x - 1) != ']' &&
+            mvinch(a.three_left_y, a.three_left_x - 1) != ']' &&
+            mvinch(a.four_left_y, a.four_left_x - 1) != ']') {
           create_shape(&a, FALSE);
-          ++a.starty;
-          ++a.one_bottom_y;
+          --a.startx;
+          --a.startx;
+
+          --a.one_left_x;
+          --a.one_left_x;
+          --a.two_left_x;
+          --a.two_left_x;
+          --a.three_left_x;
+          --a.three_left_x;
+          --a.four_left_x;
+          --a.four_left_x;
+
+          --a.one_right_x;
+          --a.one_right_x;
+          --a.two_right_x;
+          --a.two_right_x;
+          --a.three_right_x;
+          --a.three_right_x;
+          --a.four_right_x;
+          --a.four_right_x;
+
+          --a.one_bottom_x;
+          --a.one_bottom_x;
+          create_shape(&a, TRUE);
+        } else if (a.border.xx == 'a' && (a.startx > (win.startx + 2)) &&
+                   mvinch(a.one_left_y, a.one_left_x - 1) != ']') {
+          create_shape(&a, FALSE);
+          --a.startx;
+          --a.startx;
+
+          --a.one_left_x;
+          --a.one_left_x;
+
+          --a.one_right_x;
+          --a.one_right_x;
+
+          --a.one_bottom_x;
+          --a.one_bottom_x;
+          --a.two_bottom_x;
+          --a.two_bottom_x;
+          --a.three_bottom_x;
+          --a.three_bottom_x;
+          --a.four_bottom_x;
+          --a.four_bottom_x;
           // void print_win_params(WIN * p_swin);
           create_shape(&a, TRUE);
-        } else {
-          // copy_matrix_a_to_window(&win, &a);
-          // s21_print_matrix(win);
-          // for (int i = 0; i < a.height; i++) {
-          //   for (int j = 0; j < a.width; j++) {
-          //   a.matrix[i][j];
-          //   }
-          // }
-          // wattrset(&win, A_CHARTEXT);
-          spawn(&a);
         }
-        // }
-        // else {
-        //   // copy_matrix_a_to_window(&win, &a);
-        //   // s21_print_matrix(win);
-        //   // for (int i = 0; i < a.height; i++) {
-        //   //   for (int j = 0; j < a.width; j++) {
-        //   //   a.matrix[i][j];
-        //   //   }
-        //   // }
-        //   // wattrset(&win, A_CHARTEXT);
-        //   spawn(&a);
-        // }
-        // }
-        // if (a.starty < (win.height - a.height) &&
-        //     mvinch(a.starty + 1, a.startx) != '[' &&
-        //     mvinch(a.starty + 1, a.startx) != ']') {
-        //   create_shape(&a, FALSE);
-        //   ++a.starty;
-        //   // void print_win_params(WIN * p_swin);
-        //   create_shape(&a, TRUE);
-        // }
-        // else {
-        //   // copy_matrix_a_to_window(&win, &a);
-        //   // s21_print_matrix(win);
-        //   spawn(&a);
-        // }
-        break;
+      }
+      // break
+      if (control == KEY_RIGHT) {
+        if (a.border.xx == 'b' &&
+            a.startx < (win.startx + (win.width - a.width)) &&
+            mvinch(a.one_right_y, a.one_right_x + 1) != '[' &&
+            mvinch(a.two_right_y, a.two_right_x + 1) != '[' &&
+            mvinch(a.three_right_y, a.three_right_x + 1) != '[' &&
+            mvinch(a.four_right_y, a.four_right_x + 1) != '[') {
+          create_shape(&a, FALSE);
+
+          ++a.startx;
+          ++a.startx;
+
+          ++a.one_right_x;
+          ++a.one_right_x;
+          ++a.two_right_x;
+          ++a.two_right_x;
+          ++a.three_right_x;
+          ++a.three_right_x;
+          ++a.four_right_x;
+          ++a.four_right_x;
+
+          ++a.one_left_x;
+          ++a.one_left_x;
+          ++a.two_left_x;
+          ++a.two_left_x;
+          ++a.three_left_x;
+          ++a.three_left_x;
+          ++a.four_left_x;
+          ++a.four_left_x;
+
+          ++a.one_bottom_x;
+          ++a.one_bottom_x;
+
+          create_shape(&a, TRUE);
+        } else if (a.border.xx == 'a' &&
+                   a.startx < (win.startx + (win.width - a.width)) &&
+                   mvinch(a.one_right_y, a.one_right_x + 1) != '[') {
+          create_shape(&a, FALSE);
+          ++a.startx;
+          ++a.startx;
+
+          ++a.one_right_x;
+          ++a.one_right_x;
+
+          ++a.one_left_x;
+          ++a.one_left_x;
+
+          ++a.one_bottom_x;
+          ++a.one_bottom_x;
+          ++a.two_bottom_x;
+          ++a.two_bottom_x;
+          ++a.three_bottom_x;
+          ++a.three_bottom_x;
+          ++a.four_bottom_x;
+          ++a.four_bottom_x;
+          create_shape(&a, TRUE);
+        }
+      }
+      // break;
+
+      if (control == KEY_DOWN) down(&a, &win);
     }
+    if (timer % 10 == 0) down(&a, &win);
+    refresh();
+    usleep(50000);
+    timer++;
   }
   endwin();
   return 0;
 }
 
-void copy_matrix_a_to_window(WIN *win, WIN *a) {
-  for (int i = 0; i < a->height; i++) {
-    for (int j = 0; j < a->width; j++) {
-      int screen_y = a->starty + i;
-      int screen_x = a->startx + j;
+void down(WIN *a, WIN *win) {
+  if (a->border.xx == 'a' && a->starty < (win->height - a->height) &&
+      mvinch(a->one_bottom_y + 1, a->one_bottom_x) != '[' &&
+      mvinch(a->two_bottom_y + 1, a->two_bottom_x) != '[' &&
+      mvinch(a->three_bottom_y + 1, a->three_bottom_x) != '[' &&
+      mvinch(a->four_bottom_y + 1, a->four_bottom_x) != '[') {
+    create_shape(a, FALSE);
+    ++a->starty;
+    ++a->one_bottom_y;
+    ++a->two_bottom_y;
+    ++a->three_bottom_y;
+    ++a->four_bottom_y;
 
-      chtype ch = mvinch(screen_y, screen_x);
+    ++a->one_right_y;
 
-      if (screen_y >= 0 && screen_y < win->height && screen_x >= 0 &&
-          screen_x < win->width) {
-        win->matrix[screen_y][screen_x] = (char)ch;
-      }
-    }
+    ++a->one_left_y;
+    create_shape(a, TRUE);
+  } else if (a->border.xx == 'b' && a->starty < (win->height - a->height) &&
+             mvinch(a->one_bottom_y + 1, a->one_bottom_x) != '[') {
+    create_shape(a, FALSE);
+    ++a->starty;
+    ++a->one_bottom_y;
+
+    ++a->one_right_y;
+    ++a->two_right_y;
+    ++a->three_right_y;
+    ++a->four_right_y;
+
+    ++a->one_left_y;
+    ++a->two_left_y;
+    ++a->three_left_y;
+    ++a->four_left_y;
+    create_shape(a, TRUE);
+  } else {
+    spawn(a);
   }
 }
 
 void init_win_params(WIN *p_win) {
   p_win->height = 20;
   p_win->width = 21;
-  // s21_create_matrix(p_win->height, p_win->width, 0, (COLS - p_win->width) /
-  // 2,
-  //                   p_win);
   p_win->starty = 0;
   p_win->startx = (COLS - p_win->width) / 2;
   p_win->border.ls = '|';
@@ -238,14 +308,25 @@ void init_win_params(WIN *p_win) {
   p_win->border.br = ACS_LRCORNER;
 }
 
+void start_x(WIN *a) {
+  a->starty = 0 + 1;
+  a->startx = ((COLS - a->width) / 2);  // вынести отдельно
+}
+
+void start_y(WIN *a) {
+  a->starty = 0 + 1;
+  a->startx = ((COLS - a->width) / 2) + 1;  // вынести отдельно
+}
+
 void init_shape_snake_x_params(WIN *a) {
-  s21_create_matrix(4, 8, 0, 0, a);
+  s21_create_matrix(1, 8, a->starty, a->startx, a);  // вынести из функции
+  // s21_create_matrix(4, 8, 0, 0, a);
   a->border.xx = 'a';
   a->height = 1;
   a->width = 8;
-  a->starty = 0 + 1;
-  a->startx = ((COLS - a->width) / 2);
+}
 
+void logic_x(WIN *a) {
   a->one_bottom_x = a->startx;
   a->one_bottom_y = a->starty;
   a->two_bottom_x = a->startx + 2;
@@ -254,6 +335,13 @@ void init_shape_snake_x_params(WIN *a) {
   a->three_bottom_y = a->starty;
   a->four_bottom_x = a->startx + 6;
   a->four_bottom_y = a->starty;
+
+  a->one_left_x = a->startx;
+  a->one_left_y = a->starty;
+
+  a->one_right_x = a->startx + 6;
+  a->one_right_y = a->starty;
+
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
   a->matrix[0][2] = '[';
@@ -264,25 +352,38 @@ void init_shape_snake_x_params(WIN *a) {
   a->matrix[0][7] = ']';
 }
 
-void init_shape_snake_y_params(WIN *a) {  // допилить перемещение точек
-  s21_create_matrix(4, 8, 0, 0, a);
+void init_shape_snake_y_params(WIN *a) {
+  s21_create_matrix(4, 2, a->starty, a->startx, a);  // вынести из функции
+  // s21_create_matrix(4, 8, 0, 0, a);
+
   a->border.xx = 'b';
   a->height = 4;
   a->width = 2;
-  a->starty = 0 + 1;
-  a->startx = ((COLS - a->width) / 2) + 1;
-  // a->one_bottom = a->matrix[3][0];
-  // a->two_bottom = a->matrix[3][0];
-  // a->three_bottom = a->matrix[3][0];
-  // a->four_bottom = a->matrix[3][0];
-  a->one_bottom_x = a->startx;
+}
+
+void logic_y(WIN *a) {
+  int current_x = a->startx;
+  int current_y = a->starty;
+
+  a->one_left_x = current_x;
+  a->one_left_y = a->starty;
+  a->two_left_x = current_x;
+  a->two_left_y = a->starty + 1;
+  a->three_left_x = current_x;
+  a->three_left_y = a->starty + 2;
+  a->four_left_x = current_x;
+  a->four_left_y = a->starty + 3;
+
+  a->one_right_x = current_x + 1;
+  a->one_right_y = a->starty;
+  a->two_right_x = current_x + 1;
+  a->two_right_y = a->starty + 1;
+  a->three_right_x = current_x + 1;
+  a->three_right_y = a->starty + 2;
+  a->four_right_x = current_x + 1;
+  a->four_right_y = a->starty + 3;
+  a->one_bottom_x = current_x;
   a->one_bottom_y = a->starty + 3;
-  // a->two_bottom_x = a->startx;
-  // a->two_bottom_y = a->starty;
-  // a->three_bottom_x = a->startx;
-  // a->three_bottom_y = a->starty;
-  // a->four_bottom_x = a->startx;
-  // a->four_bottom_y = a->starty;
   a->matrix[0][0] = '[';
   a->matrix[0][1] = ']';
   a->matrix[1][0] = '[';
@@ -291,6 +392,101 @@ void init_shape_snake_y_params(WIN *a) {  // допилить перемещен
   a->matrix[2][1] = ']';
   a->matrix[3][0] = '[';
   a->matrix[3][1] = ']';
+  a->startx = current_x;
+  a->starty = current_y;
+}
+
+// void rotate(WIN *a) {
+//   if (a->border.xx == 'a') {
+//     init_shape_snake_y_params(a);
+//     update_update_coordinates(a);
+//     logic_y(a);
+
+//   } else {
+//     init_shape_snake_x_params(a);
+//     update_update_coordinates(a);
+//     logic_x(a);
+//   }
+// }
+
+void rotate(WIN *a) {
+  int old_startx = a->startx;
+  int old_starty = a->starty;
+
+  // create_shape(a, FALSE);
+
+  if (a->border.xx == 'a') {
+    init_shape_snake_y_params(a);
+    start_y(a);
+    logic_y(a);
+  } else {
+    init_shape_snake_x_params(a);
+    start_x(a);
+    logic_x(a);
+  }
+
+  a->startx = old_startx;
+  a->starty = old_starty;
+
+  update_coordinates(a);
+
+  if (check_collision(a)) {
+    create_shape(a, FALSE);
+    if (a->border.xx == 'a') {
+      init_shape_snake_y_params(a);
+      start_y(a);
+      logic_y(a);
+    } else {
+      init_shape_snake_x_params(a);
+      start_x(a);
+      logic_x(a);
+    }
+    a->startx = old_startx;
+    a->starty = old_starty;
+    update_coordinates(a);
+  }
+
+  // create_shape(a, TRUE);
+}
+
+// void update_update_coordinates(WIN *a) {
+//   if (a->border.xx == 'a') {
+//     a->startx += 2;
+//     a->starty += 2;
+//   } else {
+//     a->startx -= 2;
+//     a->starty -= 2;
+//   }
+// }
+
+void update_coordinates(WIN *a) {
+  if (a->border.xx == 'a') {
+    a->one_bottom_x = a->startx;
+    a->one_bottom_y = a->starty;
+    a->two_bottom_x = a->startx + 2;
+    a->three_bottom_x = a->startx + 4;
+    a->four_bottom_x = a->startx + 6;
+  } else {
+    a->one_left_x = a->startx;
+    a->one_left_y = a->starty;
+    a->two_left_y = a->starty + 1;
+    a->three_left_y = a->starty + 2;
+    a->four_left_y = a->starty + 3;
+  }
+}
+
+bool check_collision(WIN *a) {
+  for (int i = 0; i < a->height; i++) {
+    for (int j = 0; j < a->width; j++) {
+      int y = a->starty + i;
+      int x = a->startx + j;
+      chtype ch = mvinch(y, x);
+      if (ch != ' ' && ch != a->matrix[i][j]) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void spawn(WIN *a) {
@@ -299,24 +495,39 @@ void spawn(WIN *a) {
   switch (chaa) {
     case 'a':
       init_shape_snake_x_params(a);
+
+      start_x(a);
+      logic_x(a);
       break;
     case 'b':
       init_shape_snake_y_params(a);
+      start_y(a);
+      logic_y(a);
       break;
     case 'c':
       init_shape_snake_x_params(a);
+      start_x(a);
+      logic_x(a);
       break;
     case 'd':
       init_shape_snake_x_params(a);
+      start_x(a);
+      logic_x(a);
       break;
     case 'e':
       init_shape_snake_y_params(a);
+      start_y(a);
+      logic_y(a);
       break;
     case 'f':
       init_shape_snake_x_params(a);
+      start_x(a);
+      logic_x(a);
       break;
     case 'g':
       init_shape_snake_y_params(a);
+      start_y(a);
+      logic_y(a);
       break;
     default:
       break;

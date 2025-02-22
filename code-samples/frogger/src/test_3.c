@@ -1,487 +1,91 @@
 #include <ncurses.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
-typedef struct _win_border_struct {
-  chtype ls, rs, ts, bs, tl, tr, bl, br, xx;
-} WIN_BORDER;
+#define WIDTH 10
+#define HEIGHT 20
 
-typedef struct _WIN_struct {
-  char **matrix;
-  int startx, starty;
-  int height, width;
-  int two_right_x, three_right_x, four_right_x, two_right_y, three_right_y,
-      two_left_x, three_left_x, four_left_x, two_left_y, three_left_y,
-      four_left_y, four_right_y, one_right_x, one_right_y, one_left_x,
-      one_left_y, one_bottom_x, two_bottom_x, three_bottom_x, four_bottom_x,
-      one_bottom_y, two_bottom_y, three_bottom_y, four_bottom_y;
-  WIN_BORDER border;
-} WIN;
+typedef enum {
+  Start,
+  Pause,
+  Terminate,
+  Left,
+  Right,
+  Up,
+  Down,
+  Action
+} UserAction_t;
 
-// typedef struct matrix_struct {  // переделать ровс и колумн убрать или вообще
-//                                 // объеденить с WIN
-//   int startx, starty;
-//   int height, width;
-//   char **matrix;
-//   int height;
-//   int width;
-// } WIN;
-void down(WIN *a, WIN *win);
-void logic_x(WIN *a);
-void logic_y(WIN *a);
-bool check_collision(WIN *a);
-void update_coordinates(WIN *a);
-void start_x(WIN *a);
-void start_y(WIN *a);
-void rotate(WIN *a);
-void spawn(WIN *a);
-void create_shape(WIN *a, bool flag);
-void init_shape_snake_x_params(WIN *a);
-void init_shape_snake_y_params(WIN *a);
-void create_x_snake(WIN *x_snake);
-void create_y_snake(WIN *y_snake);
-void init_shape_random(WIN *a);
-void copy_matrix_a_to_window(WIN *win, WIN *a);
+typedef struct {
+  int **field;
+  int **next;
+  int score;
+  int high_score;
+  int level;
+  int speed;
+  int pause;
+} GameInfo_t;
 
-int s21_create_matrix(int height, int width, int startx, int starty,
-                      WIN *result) {
-  int res = OK;
-  if (height < 1 || width < 1 || result == NULL) {
-    res = 1;
-  } else {
-    result->startx = startx;
-    result->starty = starty;
-    result->height = height;
-    result->width = width;
-    result->matrix = (char **)calloc(height, sizeof(char *));
-    for (int i = 0; i < height; i++) {
-      result->matrix[i] = (char *)calloc(width, sizeof(char));
+static GameInfo_t gameInfo;
+static int currentPiece[4][4];
+static int nextPiece[4][4];
+static int pieceX, pieceY;
+static bool gameOver = false;
+static bool paused = false;
+static int rotationState = 0;  // 0 — горизонтальное, 1 — вертикальное
+
+void initializeGame() {
+  gameInfo.field = (int **)malloc(HEIGHT * sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)malloc(WIDTH * sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
     }
   }
-  return res;
-}
 
-void s21_print_matrix(WIN A) {  // change to mvprintw or wprint?
-  if (A.height < 1 || A.width < 1) {
-    return;
+  gameInfo.next = (int **)malloc(4 * sizeof(int *));
+  for (int i = 0; i < 4; i++) {
+    gameInfo.next[i] = (int *)malloc(4 * sizeof(int));
+    for (int j = 0; j < 4; j++) {
+      gameInfo.next[i][j] = 0;
+    }
   }
 
-  for (int i = 0; i < A.height; i++) {
-    for (int j = 0; j < A.width; j++) {
-      if (j == A.width - 1)
-        mvprintw(5, 5, "%c\n", A.matrix[i][j]);
-      else
-        mvprintw(5, 5, "%c", A.matrix[i][j]);
+  gameInfo.score = 0;
+  gameInfo.high_score = 0;
+  gameInfo.level = 1;
+  gameInfo.speed = 500;  // Начальная скорость (меньше = быстрее)
+  gameInfo.pause = 0;
+
+  srand(time(NULL));
+}
+
+void generatePiece(int piece[4][4]) {
+  int shapes[7][4][4] = {
+      {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}},  // I
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}},  // O
+      {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 0, 1, 0}, {0, 0, 0, 0}},  // T
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 0}},  // S
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}},  // Z
+      {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}},  // L
+      {{0, 0, 0, 0}, {0, 0, 1, 0}, {1, 1, 1, 0}, {0, 0, 0, 0}}   // J
+  };
+
+  int shape = rand() % 7;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      piece[i][j] = shapes[shape][i][j];
     }
   }
 }
 
-void init_win_params(WIN *p_win);
-void print_win_params(WIN *p_win);
-void create_box(WIN *win, bool flag);
-
-int main() {
-  WIN a;
-  // WIN win;
-  // s21_create_matrix(20, 20,  0,0, &win);
-  WIN win;
-
-  int ch;
-  initscr();
-  cbreak();
-
-  keypad(stdscr, TRUE);
-  noecho();
-  // curs_set(0);
-  nodelay(stdscr, TRUE);
-  init_win_params(&win);
-  // void print_win_params(WIN * p_win);
-  init_shape_snake_x_params(&a);
-  start_x(&a);
-  logic_x(&a);
-  // attron(COLOR_PAIR(1));
-  // printw("");sss
-  refresh();
-  // attroff(COLOR_PAIR(1));
-  create_box(&win, TRUE);
-  create_shape(&a, TRUE);
-  // start(&a);
-  int timer = 0;
-  while (1) {
-    // create_box(&win, TRUE);
-    // create_shape(&a, TRUE);
-    // down(&a, &win);
-    // usleep(500000);
-
-    int control = getch();
-    // while ((ch = getch()) != KEY_F(1)) {
-    // switch (ch) {
-    if (control != ERR) {
-      if (control == KEY_UP) {
-        create_shape(&a, FALSE);
-        rotate(&a);
-
-        // if (check_collision(&win, &a)) {
-        //   rotate(&a);
-        //   rotate(&a);
-        // }
-        create_shape(&a, TRUE);
-      }
-      // break;
-      if (control == KEY_LEFT) {
-        if (a.border.xx == 'b' && (a.startx > (win.startx + 2)) &&
-            mvinch(a.one_left_y, a.one_left_x - 1) != ']' &&
-            mvinch(a.two_left_y, a.two_left_x - 1) != ']' &&
-            mvinch(a.three_left_y, a.three_left_x - 1) != ']' &&
-            mvinch(a.four_left_y, a.four_left_x - 1) != ']') {
-          create_shape(&a, FALSE);
-          --a.startx;
-          --a.startx;
-
-          --a.one_left_x;
-          --a.one_left_x;
-          --a.two_left_x;
-          --a.two_left_x;
-          --a.three_left_x;
-          --a.three_left_x;
-          --a.four_left_x;
-          --a.four_left_x;
-
-          --a.one_right_x;
-          --a.one_right_x;
-          --a.two_right_x;
-          --a.two_right_x;
-          --a.three_right_x;
-          --a.three_right_x;
-          --a.four_right_x;
-          --a.four_right_x;
-
-          --a.one_bottom_x;
-          --a.one_bottom_x;
-          create_shape(&a, TRUE);
-        } else if (a.border.xx == 'a' && (a.startx > (win.startx + 2)) &&
-                   mvinch(a.one_left_y, a.one_left_x - 1) != ']') {
-          create_shape(&a, FALSE);
-          --a.startx;
-          --a.startx;
-
-          --a.one_left_x;
-          --a.one_left_x;
-
-          --a.one_right_x;
-          --a.one_right_x;
-
-          --a.one_bottom_x;
-          --a.one_bottom_x;
-          --a.two_bottom_x;
-          --a.two_bottom_x;
-          --a.three_bottom_x;
-          --a.three_bottom_x;
-          --a.four_bottom_x;
-          --a.four_bottom_x;
-          // void print_win_params(WIN * p_swin);
-          create_shape(&a, TRUE);
-        }
-      }
-      // break
-      if (control == KEY_RIGHT) {
-        if (a.border.xx == 'b' &&
-            a.startx < (win.startx + (win.width - a.width)) &&
-            mvinch(a.one_right_y, a.one_right_x + 1) != '[' &&
-            mvinch(a.two_right_y, a.two_right_x + 1) != '[' &&
-            mvinch(a.three_right_y, a.three_right_x + 1) != '[' &&
-            mvinch(a.four_right_y, a.four_right_x + 1) != '[') {
-          create_shape(&a, FALSE);
-
-          ++a.startx;
-          ++a.startx;
-
-          ++a.one_right_x;
-          ++a.one_right_x;
-          ++a.two_right_x;
-          ++a.two_right_x;
-          ++a.three_right_x;
-          ++a.three_right_x;
-          ++a.four_right_x;
-          ++a.four_right_x;
-
-          ++a.one_left_x;
-          ++a.one_left_x;
-          ++a.two_left_x;
-          ++a.two_left_x;
-          ++a.three_left_x;
-          ++a.three_left_x;
-          ++a.four_left_x;
-          ++a.four_left_x;
-
-          ++a.one_bottom_x;
-          ++a.one_bottom_x;
-
-          create_shape(&a, TRUE);
-        } else if (a.border.xx == 'a' &&
-                   a.startx < (win.startx + (win.width - a.width)) &&
-                   mvinch(a.one_right_y, a.one_right_x + 1) != '[') {
-          create_shape(&a, FALSE);
-          ++a.startx;
-          ++a.startx;
-
-          ++a.one_right_x;
-          ++a.one_right_x;
-
-          ++a.one_left_x;
-          ++a.one_left_x;
-
-          ++a.one_bottom_x;
-          ++a.one_bottom_x;
-          ++a.two_bottom_x;
-          ++a.two_bottom_x;
-          ++a.three_bottom_x;
-          ++a.three_bottom_x;
-          ++a.four_bottom_x;
-          ++a.four_bottom_x;
-          create_shape(&a, TRUE);
-        }
-      }
-      // break;
-
-      if (control == KEY_DOWN) down(&a, &win);
-    }
-    if (timer % 10 == 0) down(&a, &win);
-    refresh();
-    usleep(50000);
-    timer++;
-  }
-  endwin();
-  return 0;
-}
-
-void down(WIN *a, WIN *win) {
-  if (a->border.xx == 'a' && a->starty < (win->height - a->height) &&
-      mvinch(a->one_bottom_y + 1, a->one_bottom_x) != '[' &&
-      mvinch(a->two_bottom_y + 1, a->two_bottom_x) != '[' &&
-      mvinch(a->three_bottom_y + 1, a->three_bottom_x) != '[' &&
-      mvinch(a->four_bottom_y + 1, a->four_bottom_x) != '[') {
-    create_shape(a, FALSE);
-    ++a->starty;
-    ++a->one_bottom_y;
-    ++a->two_bottom_y;
-    ++a->three_bottom_y;
-    ++a->four_bottom_y;
-
-    ++a->one_right_y;
-
-    ++a->one_left_y;
-    create_shape(a, TRUE);
-  } else if (a->border.xx == 'b' && a->starty < (win->height - a->height) &&
-             mvinch(a->one_bottom_y + 1, a->one_bottom_x) != '[') {
-    create_shape(a, FALSE);
-    ++a->starty;
-    ++a->one_bottom_y;
-
-    ++a->one_right_y;
-    ++a->two_right_y;
-    ++a->three_right_y;
-    ++a->four_right_y;
-
-    ++a->one_left_y;
-    ++a->two_left_y;
-    ++a->three_left_y;
-    ++a->four_left_y;
-    create_shape(a, TRUE);
-  } else {
-    spawn(a);
-  }
-}
-
-void init_win_params(WIN *p_win) {
-  p_win->height = 20;
-  p_win->width = 21;
-  p_win->starty = 0;
-  p_win->startx = (COLS - p_win->width) / 2;
-  p_win->border.ls = '|';
-  p_win->border.rs = '|';
-  p_win->border.ts = '-';
-  p_win->border.bs = '-';
-  p_win->border.tl = ACS_ULCORNER;
-  p_win->border.tr = ACS_URCORNER;
-  p_win->border.bl = ACS_LLCORNER;
-  p_win->border.br = ACS_LRCORNER;
-}
-
-void start_x(WIN *a) {
-  a->starty = 0 + 1;
-  a->startx = ((COLS - a->width) / 2);  // вынести отдельно
-}
-
-void start_y(WIN *a) {
-  a->starty = 0 + 1;
-  a->startx = ((COLS - a->width) / 2) + 1;  // вынести отдельно
-}
-
-void init_shape_snake_x_params(WIN *a) {
-  s21_create_matrix(1, 8, a->starty, a->startx, a);  // вынести из функции
-  // s21_create_matrix(4, 8, 0, 0, a);
-  a->border.xx = 'a';
-  a->height = 1;
-  a->width = 8;
-}
-
-void logic_x(WIN *a) {
-  a->one_bottom_x = a->startx;
-  a->one_bottom_y = a->starty;
-  a->two_bottom_x = a->startx + 2;
-  a->two_bottom_y = a->starty;
-  a->three_bottom_x = a->startx + 4;
-  a->three_bottom_y = a->starty;
-  a->four_bottom_x = a->startx + 6;
-  a->four_bottom_y = a->starty;
-
-  a->one_left_x = a->startx;
-  a->one_left_y = a->starty;
-
-  a->one_right_x = a->startx + 6;
-  a->one_right_y = a->starty;
-
-  a->matrix[0][0] = '[';
-  a->matrix[0][1] = ']';
-  a->matrix[0][2] = '[';
-  a->matrix[0][3] = ']';
-  a->matrix[0][4] = '[';
-  a->matrix[0][5] = ']';
-  a->matrix[0][6] = '[';
-  a->matrix[0][7] = ']';
-}
-
-void init_shape_snake_y_params(WIN *a) {
-  s21_create_matrix(4, 2, a->starty, a->startx, a);  // вынести из функции
-  // s21_create_matrix(4, 8, 0, 0, a);
-
-  a->border.xx = 'b';
-  a->height = 4;
-  a->width = 2;
-}
-
-void logic_y(WIN *a) {
-  int current_x = a->startx;
-  int current_y = a->starty;
-
-  a->one_left_x = current_x;
-  a->one_left_y = a->starty;
-  a->two_left_x = current_x;
-  a->two_left_y = a->starty + 1;
-  a->three_left_x = current_x;
-  a->three_left_y = a->starty + 2;
-  a->four_left_x = current_x;
-  a->four_left_y = a->starty + 3;
-
-  a->one_right_x = current_x + 1;
-  a->one_right_y = a->starty;
-  a->two_right_x = current_x + 1;
-  a->two_right_y = a->starty + 1;
-  a->three_right_x = current_x + 1;
-  a->three_right_y = a->starty + 2;
-  a->four_right_x = current_x + 1;
-  a->four_right_y = a->starty + 3;
-  a->one_bottom_x = current_x;
-  a->one_bottom_y = a->starty + 3;
-  a->matrix[0][0] = '[';
-  a->matrix[0][1] = ']';
-  a->matrix[1][0] = '[';
-  a->matrix[1][1] = ']';
-  a->matrix[2][0] = '[';
-  a->matrix[2][1] = ']';
-  a->matrix[3][0] = '[';
-  a->matrix[3][1] = ']';
-  a->startx = current_x;
-  a->starty = current_y;
-}
-
-// void rotate(WIN *a) {
-//   if (a->border.xx == 'a') {
-//     init_shape_snake_y_params(a);
-//     update_update_coordinates(a);
-//     logic_y(a);
-
-//   } else {
-//     init_shape_snake_x_params(a);
-//     update_update_coordinates(a);
-//     logic_x(a);
-//   }
-// }
-
-void rotate(WIN *a) {
-  int old_startx = a->startx;
-  int old_starty = a->starty;
-
-  // create_shape(a, FALSE);
-
-  if (a->border.xx == 'a') {
-    init_shape_snake_y_params(a);
-    start_y(a);
-    logic_y(a);
-  } else {
-    init_shape_snake_x_params(a);
-    start_x(a);
-    logic_x(a);
-  }
-
-  a->startx = old_startx;
-  a->starty = old_starty;
-
-  update_coordinates(a);
-
-  if (check_collision(a)) {
-    create_shape(a, FALSE);
-    if (a->border.xx == 'a') {
-      init_shape_snake_y_params(a);
-      start_y(a);
-      logic_y(a);
-    } else {
-      init_shape_snake_x_params(a);
-      start_x(a);
-      logic_x(a);
-    }
-    a->startx = old_startx;
-    a->starty = old_starty;
-    update_coordinates(a);
-  }
-
-  // create_shape(a, TRUE);
-}
-
-// void update_update_coordinates(WIN *a) {
-//   if (a->border.xx == 'a') {
-//     a->startx += 2;
-//     a->starty += 2;
-//   } else {
-//     a->startx -= 2;
-//     a->starty -= 2;
-//   }
-// }
-
-void update_coordinates(WIN *a) {
-  if (a->border.xx == 'a') {
-    a->one_bottom_x = a->startx;
-    a->one_bottom_y = a->starty;
-    a->two_bottom_x = a->startx + 2;
-    a->three_bottom_x = a->startx + 4;
-    a->four_bottom_x = a->startx + 6;
-  } else {
-    a->one_left_x = a->startx;
-    a->one_left_y = a->starty;
-    a->two_left_y = a->starty + 1;
-    a->three_left_y = a->starty + 2;
-    a->four_left_y = a->starty + 3;
-  }
-}
-
-bool check_collision(WIN *a) {
-  for (int i = 0; i < a->height; i++) {
-    for (int j = 0; j < a->width; j++) {
-      int y = a->starty + i;
-      int x = a->startx + j;
-      chtype ch = mvinch(y, x);
-      if (ch != ' ' && ch != a->matrix[i][j]) {
+bool checkCollision(int x, int y, int piece[4][4]) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (piece[i][j] && (x + j < 0 || x + j >= WIDTH || y + i >= HEIGHT ||
+                          gameInfo.field[y + i][x + j])) {
         return true;
       }
     }
@@ -489,106 +93,266 @@ bool check_collision(WIN *a) {
   return false;
 }
 
-void spawn(WIN *a) {
-  char shape_list[7] = {'a', 'b', 'c', 'd', 'e', 'f', 'g'};
-  char chaa = shape_list[rand() % 8];
-  switch (chaa) {
-    case 'a':
-      init_shape_snake_x_params(a);
+void rotatePiece(int piece[4][4]) {
+  int temp[4][4];
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      temp[i][j] = piece[i][j];
+    }
+  }
 
-      start_x(a);
-      logic_x(a);
+  // Вращение только для фигур I, S, Z
+  bool isISZ = (piece[0][0] == 0 && piece[0][1] == 0 && piece[0][2] == 0 &&
+                piece[0][3] == 0 &&
+                (piece[1][0] == 1 || piece[1][1] == 1 || piece[1][2] == 1 ||
+                 piece[1][3] == 1));
+
+  if (isISZ) {
+    // Вращение только в две позиции
+    if (rotationState == 0) {
+      // Поворот в вертикальное положение
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          piece[i][j] = temp[j][3 - i];
+        }
+      }
+      rotationState = 1;
+    } else {
+      // Поворот в горизонтальное положение
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          piece[i][j] = temp[3 - j][i];
+        }
+      }
+      rotationState = 0;
+    }
+  }
+
+  // Проверка на столкновения после вращения
+  if (checkCollision(pieceX, pieceY, piece)) {
+    // Если есть столкновение, отменяем вращение
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        piece[i][j] = temp[i][j];
+      }
+    }
+  }
+}
+
+void mergePiece() {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (currentPiece[i][j]) {
+        gameInfo.field[pieceY + i][pieceX + j] = currentPiece[i][j];
+      }
+    }
+  }
+}
+
+void clearLines() {
+  for (int i = HEIGHT - 1; i >= 0; i--) {
+    bool full = true;
+    for (int j = 0; j < WIDTH; j++) {
+      if (!gameInfo.field[i][j]) {
+        full = false;
+        break;
+      }
+    }
+    if (full) {
+      for (int k = i; k > 0; k--) {
+        for (int j = 0; j < WIDTH; j++) {
+          gameInfo.field[k][j] = gameInfo.field[k - 1][j];
+        }
+      }
+      for (int j = 0; j < WIDTH; j++) {
+        gameInfo.field[0][j] = 0;
+      }
+      gameInfo.score += 100;
+      if (gameInfo.score > gameInfo.high_score) {
+        gameInfo.high_score = gameInfo.score;
+      }
+    }
+  }
+}
+
+void userInput(UserAction_t action, bool hold) {
+  if (gameOver) return;
+
+  switch (action) {
+    case Start:
+      if (gameOver) {
+        initializeGame();
+        gameOver = false;
+      }
       break;
-    case 'b':
-      init_shape_snake_y_params(a);
-      start_y(a);
-      logic_y(a);
+    case Pause:
+      paused = !paused;
       break;
-    case 'c':
-      init_shape_snake_x_params(a);
-      start_x(a);
-      logic_x(a);
+    case Terminate:
+      gameOver = true;
       break;
-    case 'd':
-      init_shape_snake_x_params(a);
-      start_x(a);
-      logic_x(a);
+    case Left:
+      if (!checkCollision(pieceX - 1, pieceY, currentPiece)) {
+        pieceX--;
+      }
       break;
-    case 'e':
-      init_shape_snake_y_params(a);
-      start_y(a);
-      logic_y(a);
+    case Right:
+      if (!checkCollision(pieceX + 1, pieceY, currentPiece)) {
+        pieceX++;
+      }
       break;
-    case 'f':
-      init_shape_snake_x_params(a);
-      start_x(a);
-      logic_x(a);
+    case Down:
+      if (!checkCollision(pieceX, pieceY + 1, currentPiece)) {
+        pieceY++;
+      }
       break;
-    case 'g':
-      init_shape_snake_y_params(a);
-      start_y(a);
-      logic_y(a);
+    case Up:
+      rotatePiece(currentPiece);  // Вращение фигуры
       break;
-    default:
+    case Action:
+      // Жесткое падение (пока не реализовано)
       break;
   }
 }
 
-void create_shape(WIN *a, bool flag) {
-  int i, j;
-  int x, y, w, h;
-  x = a->startx;
-  y = a->starty;
-  w = a->width;
-  h = a->height;
-
-  if (flag == TRUE) {
-    for (i = 0; i < a->height; ++i) {
-      for (j = 0; j < a->width; ++j) {
-        mvaddch(y + i, x + j, a->matrix[i][j]);
+GameInfo_t updateCurrentState() {
+  if (!paused && !gameOver) {
+    if (checkCollision(pieceX, pieceY + 1, currentPiece)) {
+      mergePiece();
+      clearLines();
+      generatePiece(currentPiece);
+      pieceX = WIDTH / 2 - 2;
+      pieceY = 0;
+      if (checkCollision(pieceX, pieceY, currentPiece)) {
+        gameOver = true;
       }
+    } else {
+      pieceY++;
     }
-  } else {
-    for (j = y; j <= y + h; ++j) {
-      for (i = x; i <= x + w; ++i) {
-        mvaddch(j, i, ' ');
-      }
-    }
-    refresh();
   }
+
+  return gameInfo;
 }
 
-void print_win_params(WIN *p_win) {
-#ifdef _DEBUG
-  mvprintw(25, 0, "%d %d %d %d %d", p_win->startx, p_win->starty, p_win->width,
-           p_win->height);
+void drawGame() {
+  clear();
+
+  // Отрисовка границ поля
+  for (int i = 0; i < HEIGHT + 2; i++) {
+    mvaddch(i, 0, ACS_VLINE);              // Левая граница
+    mvaddch(i, WIDTH * 2 + 1, ACS_VLINE);  // Правая граница
+  }
+
+  for (int j = 0; j < WIDTH * 2 + 2; j++) {
+    mvaddch(0, j, ACS_HLINE);           // Верхняя граница
+    mvaddch(HEIGHT + 1, j, ACS_HLINE);  // Нижняя граница
+  }
+
+  // Углы
+  mvaddch(0, 0, ACS_ULCORNER);                       // Верхний левый угол
+  mvaddch(0, WIDTH * 2 + 1, ACS_URCORNER);           // Верхний правый угол
+  mvaddch(HEIGHT + 1, 0, ACS_LLCORNER);              // Нижний левый угол
+  mvaddch(HEIGHT + 1, WIDTH * 2 + 1, ACS_LRCORNER);  // Нижний правый угол
+
+  // Отрисовка игрового поля
+  for (int i = 0; i < HEIGHT; i++) {
+    for (int j = 0; j < WIDTH; j++) {
+      if (gameInfo.field[i][j]) {
+        attron(COLOR_PAIR(1));
+        mvprintw(i + 1, j * 2 + 1, "[]");
+        attroff(COLOR_PAIR(1));
+      }
+    }
+  }
+
+  // Отрисовка текущей фигуры
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (currentPiece[i][j]) {
+        attron(COLOR_PAIR(2));
+        mvprintw(pieceY + i + 1, (pieceX + j) * 2 + 1, "[]");
+        attroff(COLOR_PAIR(2));
+      }
+    }
+  }
+
+  // Отрисовка боковой панели
+  mvprintw(1, WIDTH * 2 + 4, "Score: %d", gameInfo.score);
+  mvprintw(3, WIDTH * 2 + 4, "High Score: %d", gameInfo.high_score);
+  mvprintw(5, WIDTH * 2 + 4, "Level: %d", gameInfo.level);
+
+  if (paused) {
+    mvprintw(HEIGHT / 2, WIDTH / 2 - 5, "PAUSED");
+  }
+
+  if (gameOver) {
+    mvprintw(HEIGHT / 2, WIDTH / 2 - 5, "GAME OVER");
+  }
+
   refresh();
-#endif
 }
 
-void create_box(WIN *p_win, bool flag) {
-  int i, j;
-  int x, y, w, h;
-  x = p_win->startx;
-  y = p_win->starty;
-  w = p_win->width;
-  h = p_win->height;
+int main() {
+  // Инициализация ncurses
+  initscr();
+  cbreak();
+  noecho();
+  keypad(stdscr, TRUE);
+  curs_set(0);
+  timeout(gameInfo.speed);
 
-  if (flag == TRUE) {
-    mvaddch(y, x, p_win->border.tl);
-    mvaddch(y, x + w, p_win->border.tr);
-    mvaddch(y + h, x, p_win->border.bl);
-    mvaddch(y + h, x + w, p_win->border.br);
-    mvhline(y, x + 1, p_win->border.ts, w - 1);
-    mvhline(y + h, x + 1, p_win->border.bs, w - 1);
-    mvvline(y + 1, x, p_win->border.ls, h - 1);
-    mvvline(y + 1, x + w, p_win->border.rs, h - 1);
-  } else {
-    for (j = y; j <= y + h; ++j) {
-      for (i = x; i <= x + w; ++i) {
-        mvaddch(j, i, ' ');
-      }
+  // Инициализация цветов
+  start_color();
+  init_pair(1, COLOR_RED, COLOR_BLACK);    // Цвет для заполненных клеток
+  init_pair(2, COLOR_GREEN, COLOR_BLACK);  // Цвет для текущей фигуры
+
+  initializeGame();
+  generatePiece(currentPiece);
+  pieceX = WIDTH / 2 - 2;
+  pieceY = 0;
+
+  while (!gameOver) {
+    int ch = getch();
+    switch (ch) {
+      case 'q':
+        userInput(Terminate, false);
+        break;
+      case 'p':
+        userInput(Pause, false);
+        break;
+      case KEY_LEFT:
+        userInput(Left, false);
+        break;
+      case KEY_RIGHT:
+        userInput(Right, false);
+        break;
+      case KEY_DOWN:
+        userInput(Down, false);
+        break;
+      case KEY_UP:
+        userInput(Up, false);
+        break;
+      case ' ':
+        userInput(Action, false);
+        break;
     }
-    refresh();
+
+    // Очистка буфера ввода
+    flushinp();
+
+    GameInfo_t info = updateCurrentState();
+    drawGame();
+
+    if (gameOver) {
+      mvprintw(HEIGHT / 2 + 1, WIDTH / 2 - 10, "Press 'q' to quit");
+      refresh();
+      while (getch() != 'q');
+    }
+
+    usleep(gameInfo.speed * 1000);  // Задержка для обновления игры
   }
+
+  endwin();
+
+  return 0;
 }

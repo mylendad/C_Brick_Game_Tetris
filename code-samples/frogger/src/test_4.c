@@ -406,20 +406,100 @@ void rotateShape(Cursor *cursor) {
     }
   }
 
-  if (cursor->rotationPosition == 0) {
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        cursor->shape[i][j] = temp[j][3 - i];
+  switch (cursor->type) {
+    case 'I':
+      if (cursor->rotationPosition == 0) {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[j][3 - i];
+          }
+        }
+        cursor->rotationPosition = 1;
+      } else {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[3 - j][i];
+          }
+        }
+        cursor->rotationPosition = 0;
       }
-    }
-    cursor->rotationPosition = 1;
-  } else {
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        cursor->shape[i][j] = temp[3 - j][i];
+      break;
+
+    case 'J':
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          int x = j - 2;
+          int y = i - 1;
+          int newX = -y;
+          int newY = x;
+          cursor->shape[newY + 1][newX + 2] = temp[i][j];
+        }
       }
-    }
-    cursor->rotationPosition = 0;
+      break;
+
+    case 'L':  // обьеденить 3 фиг в одну функцию и вообще вынести все вращения
+               // в отдельные функции
+
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          int x = j - 2;
+          int y = i - 1;
+          int newX = -y;
+          int newY = x;
+          cursor->shape[newY + 1][newX + 2] = temp[i][j];
+        }
+      }
+      break;
+    case 'O':
+      break;
+
+    case 'S':
+      if (cursor->rotationPosition == 0) {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[j][3 - i];
+          }
+        }
+        cursor->rotationPosition = 1;
+      } else {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[3 - j][i];
+          }
+        }
+        cursor->rotationPosition = 0;
+      }
+      break;
+
+    case 'Z':
+      if (cursor->rotationPosition == 0) {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[j][3 - i];
+          }
+        }
+        cursor->rotationPosition = 1;
+      } else {
+        for (int i = 0; i < 4; i++) {
+          for (int j = 0; j < 4; j++) {
+            cursor->shape[i][j] = temp[3 - j][i];
+          }
+        }
+        cursor->rotationPosition = 0;
+      }
+      break;
+
+    case 'T':
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          int x = j - 2;
+          int y = i - 1;
+          int newX = -y;
+          int newY = x;
+          cursor->shape[newY + 1][newX + 2] = temp[i][j];
+        }
+      }
+      break;
   }
 
   if (checkSide(cursor->cursorX, cursor->cursorY, cursor->shape)) {

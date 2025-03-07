@@ -70,9 +70,6 @@ clean:
 	rm -rf dvi/documentation
 
 dvi:
-	# doxygen
-	# open doxygen/html/index.html
-	# pdfly -output-directory=dvi dvi/documentation.tex
 	latex2html dvi/documentation.tex
 
 dist: install
@@ -92,12 +89,12 @@ style:
 	$(CLANG_FORMAT) -n ./brick_game/tetris/*.h
 	$(CLANG_FORMAT) -i ./brick_game/tetris/*.h
 	$(CLANG_FORMAT) -n ./brick_game/tetris/*.h
-	$(CLANG_FORMAT) -n ./gui/cli*.c
-	$(CLANG_FORMAT) -i ./gui/cli*.c
-	$(CLANG_FORMAT) -n ./gui/cli*.c
-	$(CLANG_FORMAT) -n ./gui/cli*.h
-	$(CLANG_FORMAT) -i ./gui/cli*.h
-	$(CLANG_FORMAT) -n ./gui/cli*.h
+	$(CLANG_FORMAT) -n ./gui/cli/*.c
+	$(CLANG_FORMAT) -i ./gui/cli/*.c
+	$(CLANG_FORMAT) -n ./gui/cli/*.c
+	$(CLANG_FORMAT) -n ./gui/cli/*.h
+	$(CLANG_FORMAT) -i ./gui/cli/*.h
+	$(CLANG_FORMAT) -n ./gui/cli/*.h
 	$(CLANG_FORMAT) -n ./*.c
 	$(CLANG_FORMAT) -i ./*.c
 	$(CLANG_FORMAT) -n ./*.c
@@ -106,8 +103,8 @@ style:
 	$(CLANG_FORMAT) -n ./*.h
 	rm .clang-format
 	rm ./tests/.clang-format
-	rm ./brick_game/tetris
-	rm ./gui/cli
+	rm ./brick_game/tetris/.clang-format
+	rm ./gui/cli/.clang-format
 
 clear:
 	clear

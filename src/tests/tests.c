@@ -1,8 +1,4 @@
 #include <check.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 #include "../game.h"
 
@@ -113,148 +109,350 @@ START_TEST(test_clear_lines) {
 }
 END_TEST
 
-// START_TEST(test_shape_rotationL) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'L';
+START_TEST(test_shape_rotationL_collision) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = 9;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+  c.type = 'L';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationJ) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'J';
+START_TEST(test_shape_rotationL) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+  c.type = 'L';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 1, 1, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationI) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'I';
+START_TEST(test_shape_rotationJ) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
+  c.type = 'J';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationO) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'O';
+START_TEST(test_shape_rotationI_collision) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  c.rotationPosition == 0;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+  c.type = 'I';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationZ) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'Z';
+START_TEST(test_shape_rotationI) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+  c.type = 'I';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationS) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'S';
+START_TEST(test_shape_rotationO) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}};
+  c.type = 'O';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
-// START_TEST(test_shape_rotationT) {
-//   GameInfo_t gi;
-//   Cursor c;
-//   initializeGame(&gi, &c);
-//   c.type = 'T';
+START_TEST(test_shape_rotationT) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
 
-//   int original_shape[4][4];
-//   memcpy(original_shape, c.shape, sizeof(original_shape));
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 0, 1, 0}, {0, 0, 0, 0}};
+  c.type = 'T';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
 
-//   rotateShape(&gi, &c);
-//   ck_assert(memcmp(original_shape, c.shape, sizeof(original_shape)) != 0);
+      {{0, 0, 1, 0}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 0}};
 
-//   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
-//   free(gi.field);
-//   for (int i = 0; i < 4; i++) free(gi.next[i]);
-//   free(gi.next);
-// }
-// END_TEST
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
+
+START_TEST(test_shape_rotationS_collision) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
+
+  c.cursorX = 9;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}};
+  c.type = 'S';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
+
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
+
+START_TEST(test_shape_rotationS) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
+
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}};
+  c.type = 'S';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
+
+      {{0, 1, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
+
+START_TEST(test_shape_rotationZ) {
+  GameInfo_t gi;
+  Cursor c;
+  gi.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gi.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gi.field[i][j] = 0;
+    }
+  }
+
+  c.cursorX = WIDTH / 2 - 2;
+  c.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 0}};
+  c.type = 'Z';
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c.shape[i][j] = shapeL[i][j];
+    }
+  }
+
+  rotateShape(&gi, &c);
+  int expectedShapeAfterRotation[4][4] =
+
+      {{0, 0, 0, 0}, {0, 0, 1, 0}, {0, 1, 1, 0}, {0, 1, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], c.shape[i][j]);
+    }
+  }
+}
+END_TEST
 
 START_TEST(test_create_shape) {
   GameInfo_t gi;
   Cursor c;
   initializeGame(&gi, &c);
-  createShape(&gi, &c, 1);
+  createShape(&gi, &c, 3, 1);
   int has_blocks = 0;
+
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 4; j++)
       if (gi.next[i][j]) has_blocks++;
+
   ck_assert_int_gt(has_blocks, 0);
 
   for (int i = 0; i < HEIGHT; i++) free(gi.field[i]);
@@ -263,16 +461,6 @@ START_TEST(test_create_shape) {
   free(gi.next);
 }
 END_TEST
-
-// START_TEST(test_print_field) {
-//   GameInfo_t gameInfo = {0};
-//   gameInfo.field[5][5] = 1;  // Помещаем блок в поле
-
-//   printField(&gameInfo);
-
-//   ck_assert_int_eq(gameInfo.field[5][5], 1);
-// }
-// END_TEST
 
 START_TEST(test_print_shapesT) {
   Cursor cursor = {0};
@@ -364,16 +552,6 @@ START_TEST(test_print_shapesJ) {
 }
 END_TEST
 
-// START_TEST(test_print_next) {
-//   GameInfo_t gameInfo = {0};
-//   gameInfo.next[2][2] = 1;
-
-//   printNext(&gameInfo);
-
-//   ck_assert_int_eq(gameInfo.next[2][2], 1);
-// }
-// END_TEST
-
 START_TEST(test_print_tablo) {
   GameInfo_t gameInfo = {0};
   gameInfo.score = 1500;
@@ -398,6 +576,215 @@ START_TEST(test_print_pause) {
 }
 END_TEST
 
+START_TEST(test_controller_left) {
+  UserAction_t action = controller(KEY_LEFT);
+  ck_assert_int_eq(action, Left);
+}
+END_TEST
+
+START_TEST(test_controller_right) {
+  UserAction_t action = controller(KEY_RIGHT);
+  ck_assert_int_eq(action, Right);
+}
+END_TEST
+
+START_TEST(test_controller_down) {
+  UserAction_t action = controller(KEY_DOWN);
+  ck_assert_int_eq(action, Down);
+}
+END_TEST
+
+START_TEST(test_controller_action) {
+  UserAction_t action = controller(' ');
+  ck_assert_int_eq(action, Action);
+}
+END_TEST
+
+START_TEST(test_controller_terminate) {
+  UserAction_t action = controller('q');
+  ck_assert_int_eq(action, Terminate);
+}
+END_TEST
+
+START_TEST(test_controller_pause) {
+  UserAction_t action = controller('p');
+  ck_assert_int_eq(action, Pause);
+}
+END_TEST
+
+START_TEST(test_controller_start) {
+  UserAction_t action = controller(KEY_ENTER);
+  ck_assert_int_eq(action, Start);
+}
+END_TEST
+
+START_TEST(test_controller_default) {
+  UserAction_t action = controller('g');
+  ck_assert_int_ne(action, Left);
+  ck_assert_int_ne(action, Right);
+  ck_assert_int_ne(action, Down);
+  ck_assert_int_ne(action, Action);
+  ck_assert_int_ne(action, Terminate);
+  ck_assert_int_ne(action, Pause);
+  ck_assert_int_ne(action, Start);
+}
+END_TEST
+
+START_TEST(test_jltShapeRotate) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+  cursor.cursorX = WIDTH / 2 - 2;
+  cursor.cursorY = 5;
+  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = shapeL[i][j];
+    }
+  }
+
+  jltShapeRotate(&gameInfo, &cursor);
+  int expectedShapeAfterRotation[4][4] =
+
+      {{0, 1, 1, 0}, {0, 1, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      ck_assert_int_eq(expectedShapeAfterRotation[i][j], cursor.shape[i][j]);
+    }
+  }
+}
+END_TEST
+
+START_TEST(test_checkSide_no_collision) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+
+  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = cursora[i][j];
+    }
+  }
+
+  ck_assert_int_eq(checkSide(&gameInfo, 3, 2, cursor.shape), false);
+}
+
+START_TEST(test_checkSide_collision_with_field) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+  cursor.cursorX = WIDTH - 1;
+  cursor.cursorY = 5;
+  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = cursora[i][j];
+    }
+  }
+  ck_assert_int_eq(
+      checkSide(&gameInfo, cursor.cursorX, cursor.cursorY, cursor.shape), true);
+}
+
+START_TEST(test_checkSide_right) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+  cursor.cursorX = 10;
+  cursor.cursorY = 5;
+  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = cursora[i][j];
+    }
+  }
+  ck_assert_int_eq(
+      checkSide(&gameInfo, cursor.cursorX, cursor.cursorY, cursor.shape), true);
+}
+
+START_TEST(test_checkSide_bottom) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+  cursor.cursorX = WIDTH - 1;
+  cursor.cursorY = 19;
+  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = cursora[i][j];
+    }
+  }
+
+  ck_assert_int_eq(
+      checkSide(&gameInfo, cursor.cursorX, cursor.cursorY, cursor.shape), true);
+}
+
+START_TEST(test_checkSide_no_collision_2) {
+  GameInfo_t gameInfo;
+  Cursor cursor;
+
+  gameInfo.field = (int **)calloc(HEIGHT, sizeof(int *));
+  for (int i = 0; i < HEIGHT; i++) {
+    gameInfo.field[i] = (int *)calloc(WIDTH, sizeof(int));
+    for (int j = 0; j < WIDTH; j++) {
+      gameInfo.field[i][j] = 0;
+    }
+  }
+  cursor.cursorX = WIDTH - 1;
+  cursor.cursorY = 18;
+  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      cursor.shape[i][j] = cursora[i][j];
+    }
+  }
+
+  ck_assert_int_eq(
+      checkSide(&gameInfo, cursor.cursorX, cursor.cursorY, cursor.shape), true);
+}
+
 Suite *tetris_suite(void) {
   Suite *s;
   TCase *tc_core, *tc_logic, *tc_input, *tc_front;
@@ -414,18 +801,26 @@ Suite *tetris_suite(void) {
   tcase_add_test(tc_logic, test_merge_cursor);
   tcase_add_test(tc_logic, test_check_side_collisions);
   tcase_add_test(tc_logic, test_clear_lines);
-  // tcase_add_test(tc_logic, test_shape_rotationT);
-  // tcase_add_test(tc_logic, test_shape_rotationI);
-  // tcase_add_test(tc_logic, test_shape_rotationO);
-  // tcase_add_test(tc_logic, test_shape_rotationJ);
-  // tcase_add_test(tc_logic, test_shape_rotationL);
-  // tcase_add_test(tc_logic, test_shape_rotationS);
-  // tcase_add_test(tc_logic, test_shape_rotationZ);
+  tcase_add_test(tc_logic, test_shape_rotationT);
+  tcase_add_test(tc_logic, test_shape_rotationS_collision);
+  tcase_add_test(tc_logic, test_shape_rotationI);
+  tcase_add_test(tc_logic, test_shape_rotationI_collision);
+  tcase_add_test(tc_logic, test_shape_rotationO);
+  tcase_add_test(tc_logic, test_shape_rotationJ);
+  tcase_add_test(tc_logic, test_shape_rotationL);
+  tcase_add_test(tc_logic, test_shape_rotationL_collision);
+  tcase_add_test(tc_logic, test_shape_rotationS);
+  tcase_add_test(tc_logic, test_shape_rotationZ);
+  tcase_add_test(tc_core, test_jltShapeRotate);
+  tcase_add_test(tc_core, test_checkSide_no_collision);
+  tcase_add_test(tc_core, test_checkSide_collision_with_field);
+  tcase_add_test(tc_core, test_checkSide_right);
+  tcase_add_test(tc_core, test_checkSide_bottom);
+  tcase_add_test(tc_core, test_checkSide_no_collision_2);
   tcase_add_test(tc_logic, test_create_shape);
   suite_add_tcase(s, tc_logic);
 
   tc_front = tcase_create("Gui Logic");
-  // tcase_add_test(tc_front, test_print_field);
   tcase_add_test(tc_front, test_print_shapesT);
   tcase_add_test(tc_front, test_print_shapesI);
   tcase_add_test(tc_front, test_print_shapesO);
@@ -433,15 +828,21 @@ Suite *tetris_suite(void) {
   tcase_add_test(tc_front, test_print_shapesJ);
   tcase_add_test(tc_front, test_print_shapesS);
   tcase_add_test(tc_front, test_print_shapesZ);
-  // tcase_add_test(tc_front, test_print_next);
   tcase_add_test(tc_front, test_print_tablo);
   tcase_add_test(tc_front, test_print_pause);
   suite_add_tcase(s, tc_front);
 
   tc_input = tcase_create("Input Handling");
-  //   tcase_add_test(tc_input, test_user_input_movement);
-  // tcase_add_test(tc_input, test_pause_functionality);
+  tcase_add_test(tc_core, test_controller_left);
+  tcase_add_test(tc_core, test_controller_right);
+  tcase_add_test(tc_core, test_controller_down);
+  tcase_add_test(tc_core, test_controller_action);
+  tcase_add_test(tc_core, test_controller_terminate);
+  tcase_add_test(tc_core, test_controller_pause);
+  tcase_add_test(tc_core, test_controller_start);
+  tcase_add_test(tc_core, test_controller_default);
   suite_add_tcase(s, tc_input);
+  ;
 
   return s;
 }
@@ -454,202 +855,9 @@ int main(void) {
   s = tetris_suite();
   sr = srunner_create(s);
 
+  srunner_set_log(sr, "tests/tests_log.log");
   srunner_run_all(sr, CK_NORMAL);
   number_failed = srunner_ntests_failed(sr);
   srunner_free(sr);
   return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-// #include <check.h>
-// #include <ncurses.h>
-// #include <stdbool.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <time.h>
-// #include <unistd.h>
-
-// // #include "../game.h"
-
-// // Мок-функция для userInput
-// // UserAction_t last_action;
-// // bool last_hold;
-
-// typedef enum {
-//   Start,
-//   Pause,
-//   Terminate,
-//   Left,
-//   Right,
-//   Up,
-//   Down,
-//   Action
-// } UserAction_t;
-
-// typedef struct {
-//   int **field;
-//   int **next;
-//   int score;
-//   int high_score;
-//   int level;
-//   int speed;
-//   int pause;
-// } GameInfo_t;
-
-// typedef enum State {
-//   START,
-//   SPAWN,
-//   MOVING,
-//   CONNECTION,
-//   SHIFT,
-//   GAME_OVER
-// } FSM_State;
-
-// typedef struct {
-//   int shape[4][4];
-//   char type;
-//   char nextType;
-//   int cursorX, cursorY;
-//   int rotationPosition;
-//   int quit;
-//   bool start;
-//   bool gameOver;
-// } Cursor;
-
-// typedef struct {
-//   GameInfo_t *gameInfo;
-//   Cursor *cursor;
-// } InputContext;
-
-// void userInput(UserAction_t action, bool hold) {
-//   // UserAction_t action = action;
-//   bool last_hold = hold;
-// }
-
-// UserAction_t controller(int ch) {
-//   UserAction_t action = Terminate;
-//   bool hold = false;
-
-//   switch (ch) {
-//     case KEY_LEFT:
-//       action = Left;
-//       hold = true;
-//       break;
-//     case KEY_RIGHT:
-//       action = Right;
-//       hold = true;
-//       break;
-//     case KEY_DOWN:
-//       action = Down;
-//       hold = true;
-//       break;
-//     case ' ':
-//       action = Action;
-//       hold = true;
-//       break;
-//     case 'q':
-//       action = Terminate;
-//       hold = true;
-//       break;
-//     case 'p':
-//       action = Pause;
-//       hold = true;
-//       break;
-//     case '\n':
-//       action = Start;
-//       bool hold = true;
-//       break;
-//     default:
-//       action = ch;
-//       hold = false;
-//       break;
-//   }
-
-//   if (hold) userInput(action, hold);
-//   return action;
-// }
-
-// START_TEST(test_controller_left) {
-//   // updateCurrentState();
-//   UserAction_t action = controller(KEY_LEFT);
-//   ck_assert_int_eq(action, Left);
-//   // ck_assert(last_hold);
-// }
-// END_TEST
-
-// START_TEST(test_controller_right) {
-//   UserAction_t action = controller(KEY_RIGHT);
-//   ck_assert_int_eq(action, Right);
-// }
-// END_TEST
-
-// START_TEST(test_controller_down) {
-//   UserAction_t action = controller(KEY_DOWN);
-//   ck_assert_int_eq(action, Down);
-// }
-// END_TEST
-
-// START_TEST(test_controller_action) {
-//   UserAction_t action = controller(' ');
-//   ck_assert_int_eq(action, Action);
-// }
-// END_TEST
-
-// START_TEST(test_controller_terminate) {
-//   UserAction_t action = controller('q');
-//   ck_assert_int_eq(action, Terminate);
-// }
-// END_TEST
-
-// START_TEST(test_controller_pause) {
-//   UserAction_t action = controller('p');
-//   ck_assert_int_eq(action, Pause);
-// }
-// END_TEST
-
-// START_TEST(test_controller_start) {
-//   UserAction_t action = controller('\n');
-//   ck_assert_int_eq(action, Start);
-// }
-// END_TEST
-
-// START_TEST(test_controller_default) {
-//   UserAction_t action = controller('g');
-//   ck_assert_int_ne(action, Left);
-//   ck_assert_int_ne(action, Right);
-//   ck_assert_int_ne(action, Down);
-//   ck_assert_int_ne(action, Action);
-//   ck_assert_int_ne(action, Terminate);
-//   ck_assert_int_ne(action, Pause);
-//   ck_assert_int_ne(action, Start);
-//   // ck_assert(!last_hold);
-// }
-// END_TEST
-
-// Suite *controller_suite(void) {
-//   Suite *s = suite_create("Controller");
-//   TCase *tc_core = tcase_create("Core");
-
-//   tcase_add_test(tc_core, test_controller_left);
-//   tcase_add_test(tc_core, test_controller_right);
-//   tcase_add_test(tc_core, test_controller_down);
-//   tcase_add_test(tc_core, test_controller_action);
-//   tcase_add_test(tc_core, test_controller_terminate);
-//   tcase_add_test(tc_core, test_controller_pause);
-//   tcase_add_test(tc_core, test_controller_start);
-//   tcase_add_test(tc_core, test_controller_default);
-
-//   suite_add_tcase(s, tc_core);
-//   return s;
-// }
-
-// int main(void) {
-//   int number_failed;
-//   Suite *s = controller_suite();
-//   SRunner *sr = srunner_create(s);
-
-//   srunner_run_all(sr, CK_NORMAL);
-//   number_failed = srunner_ntests_failed(sr);
-//   srunner_free(sr);
-
-//   return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
-// }

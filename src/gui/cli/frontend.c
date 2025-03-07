@@ -1,5 +1,10 @@
 #include "../../game.h"
 
+/** @file frontend.c */
+
+/**
+ * @note Эта функция может вызывать исключение.
+ */
 void initColor() {
   start_color();
   init_pair(1, COLOR_RED, COLOR_BLACK);

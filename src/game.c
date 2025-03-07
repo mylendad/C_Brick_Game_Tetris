@@ -1,5 +1,10 @@
 #include "game.h"
 
+/** @file game.c */
+
+/**
+ * @note Эта функция может вызывать исключение.
+ */
 int main() {
   initscr();
   cbreak();

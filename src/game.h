@@ -17,6 +17,9 @@
 #define SPEED_STEP 50
 #define MIN_SPEED 100
 
+#define SECOND 1000
+#define THOUSAND_SECONDS 1000000
+
 typedef enum {
   Start,
   Pause,
@@ -42,7 +45,7 @@ typedef enum State {
   START,
   SPAWN,
   MOVING,
-  CONNECTION,
+  ATTACHING,
   SHIFT,
   GAME_OVER
 } FSM_State;

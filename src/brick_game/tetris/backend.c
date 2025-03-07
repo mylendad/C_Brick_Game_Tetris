@@ -1,12 +1,25 @@
 #include "../../game.h"
 
+/** @file backend.c */
+
+/**
+ * @brief Функция для сложения двух чисел.
+ * @param gameInfo Первое число.
+ * @param cursorВторое число.
+ */
 void fsm_loop(GameInfo_t *gameInfo, Cursor *cursor,
               struct timespec *last_move_time, FSM_State current_state) {
+  UserAction_t action = Terminate;
+  bool hold = false;
   while (!cursor->quit) {
     struct timespec current_time;
     clock_gettime(CLOCK_MONOTONIC, &current_time);
     int ch = getch();
-    controller(ch);
+    action = controller(ch);
+    if (action >= 0 || action < 8) {
+      hold = true;
+      userInput(action, hold);
+    }
     flushinp();
     if (!gameInfo->pause && !cursor->gameOver) {
       switch (current_state) {
@@ -24,27 +37,30 @@ void fsm_loop(GameInfo_t *gameInfo, Cursor *cursor,
         case SHIFT: {
           bool collision = checkSide(gameInfo, cursor->cursorX,
                                      cursor->cursorY + 1, cursor->shape);
-          if (collision) current_state = CONNECTION;
+          if (collision) current_state = ATTACHING;
           break;
         }
-        case CONNECTION:
+        case ATTACHING:
           mergeCursor(gameInfo, cursor);
           clearLines(gameInfo);
           current_state = SPAWN;
           break;
         case GAME_OVER:
           cursor->gameOver = true;
-          if (ch == '\n') {
-            initializeGame(gameInfo, cursor);
-            current_state = START;
-          }
           break;
       }
     }
-    timer(gameInfo, cursor, last_move_time, &current_time, current_state);
-    rendering(gameInfo, cursor);
-    usleep(10000);
+    if (SHIFT)
+      logic(gameInfo, cursor, last_move_time, current_state, &current_time);
   }
+}
+
+void logic(GameInfo_t *gameInfo, Cursor *cursor,
+           struct timespec *last_move_time, FSM_State current_state,
+           struct timespec *current_time) {
+  timer(gameInfo, cursor, last_move_time, current_time, current_state);
+  rendering(gameInfo, cursor);
+  usleep(10000);
 }
 
 GameInfo_t updateCurrentState() {
@@ -62,22 +78,18 @@ GameInfo_t updateCurrentState() {
   return gameInfo;
 }
 
-// static GameInfo_t *getCurrentGameInfo() {
-//   static GameInfo_t *currentGameInfo = NULL;
-//   return currentGameInfo;
-// }
-
 void timer(GameInfo_t *gameInfo, Cursor *cursor,
            struct timespec *last_move_time, struct timespec *current_time,
            FSM_State current_state) {
-  long time_diff = (current_time->tv_sec - last_move_time->tv_sec) * 1000 +
-                   (current_time->tv_nsec - last_move_time->tv_nsec) / 1000000;
+  long time_diff =
+      (current_time->tv_sec - last_move_time->tv_sec) * SECOND +
+      (current_time->tv_nsec - last_move_time->tv_nsec) / THOUSAND_SECONDS;
 
   if (time_diff >= gameInfo->speed && current_state == SHIFT) {
     if (!checkSide(gameInfo, cursor->cursorX, cursor->cursorY + 1,
                    cursor->shape) &&
         gameInfo->pause == 0 && !cursor->gameOver) {
-      moving(cursor);
+      cursor->cursorY++;
     }
     clock_gettime(CLOCK_MONOTONIC, last_move_time);
   }
@@ -88,6 +100,10 @@ UserAction_t controller(int ch) {
   bool hold = false;
 
   switch (ch) {
+    case KEY_ENTER:
+      action = Start;
+      hold = true;
+      break;
     case KEY_LEFT:
       action = Left;
       hold = true;
@@ -112,26 +128,19 @@ UserAction_t controller(int ch) {
       action = Pause;
       hold = true;
       break;
-    case '\n':
-      action = Start;
-      bool hold = true;
-      break;
     default:
       action = ch;
       hold = false;
       break;
   }
 
-  if (hold) userInput(action, hold);  // вынести
-  return action;
+  if (hold) return action;
 }
 
 void userInput(UserAction_t action, bool hold) {
   InputContext *ctx = getInputContext();
   GameInfo_t *gameInfo = ctx->gameInfo;
   Cursor *cursor = ctx->cursor;
-
-  // if (!gameInfo || !cursor) return; // change
 
   switch (action) {
     case Left:
@@ -180,6 +189,7 @@ static InputContext *getInputContext() {
 }
 
 bool spawn(GameInfo_t *gameInfo, Cursor *cursor) {
+  int shapeIndex = rand() % 7;
   bool result = true;
   cursor->cursorX = WIDTH / 2 - 2;
   cursor->cursorY = 0;
@@ -194,7 +204,7 @@ bool spawn(GameInfo_t *gameInfo, Cursor *cursor) {
     }
     cursor->type = cursor->nextType;
 
-    createShape(gameInfo, cursor, createNext);
+    createShape(gameInfo, cursor, shapeIndex, createNext);
 
     if (checkSide(gameInfo, cursor->cursorX, cursor->cursorY, cursor->shape))
       result = false;
@@ -202,19 +212,19 @@ bool spawn(GameInfo_t *gameInfo, Cursor *cursor) {
   return result;
 }
 
-void createShape(GameInfo_t *gameInfo, Cursor *cursor, int flag) {
+void createShape(GameInfo_t *gameInfo, Cursor *cursor, int shapeIndex,
+                 int flag) {
   int shapes[7][4][4] = {
       {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}},  // I
       {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}},  // O
       {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 0, 1, 0}, {0, 0, 0, 0}},  // T
-      {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 0}},  // S
-      {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}},  // Z
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 0}},  // Z
+      {{0, 0, 0, 0}, {0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}},  // S
       {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}},  // L
       {{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 1, 1, 1}, {0, 0, 0, 0}}   // J
   };
 
-  char types[] = {'I', 'O', 'T', 'S', 'Z', 'J', 'L'};
-  int shapeIndex = rand() % 7;
+  char types[] = {'I', 'O', 'T', 'Z', 'S', 'J', 'L'};
 
   if (flag == 0) {
     for (int i = 0; i < 4; i++) {
@@ -322,15 +332,16 @@ void sziShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
 }
 
 bool checkSide(GameInfo_t *gameInfo, int x, int y, int cursor[4][4]) {
+  bool result = false;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       if (cursor[i][j] && (x + j < 0 || x + j >= WIDTH || y + i >= HEIGHT ||
                            gameInfo->field[y + i][x + j])) {
-        return true;
+        result = true;
       }
     }
   }
-  return false;
+  return result;
 }
 
 int clearLines(GameInfo_t *gameInfo) {
@@ -383,8 +394,6 @@ int clearLines(GameInfo_t *gameInfo) {
   return linesCleared;
 }
 
-void moving(Cursor *cursor) { cursor->cursorY++; }
-
 void saveHighScore(int highScore) {
   FILE *file = fopen("highscore.txt", "w");
   if (file) {
@@ -398,6 +407,7 @@ void saveHighScore(int highScore) {
 void initializeGame(GameInfo_t *gameInfo, Cursor *cursor) {
   int createNew = 0;
   int createNext = 1;
+  int shapeIndex = rand() % 7;
   gameInfo->field = (int **)calloc(HEIGHT, sizeof(int *));
   for (int i = 0; i < HEIGHT; i++) {
     gameInfo->field[i] = (int *)calloc(WIDTH, sizeof(int));
@@ -422,14 +432,12 @@ void initializeGame(GameInfo_t *gameInfo, Cursor *cursor) {
   gameInfo->pause = 0;
 
   srand(time(NULL));
-  createShape(gameInfo, cursor, createNew);  // выделить для тестов
-  createShape(gameInfo, cursor, createNext);
-  createShape(gameInfo, cursor, createNew);
+  createShape(gameInfo, cursor, shapeIndex, createNew);
+  createShape(gameInfo, cursor, shapeIndex, createNext);
+  createShape(gameInfo, cursor, shapeIndex, createNew);
   cursor->cursorX = WIDTH / 2 - 2;
   cursor->cursorY = 0;
 }
-
-// void initShape(GameInfo_t *gameInfo, Cursor *cursor, int flag) {}
 
 void mergeCursor(GameInfo_t *gameInfo, Cursor *cursor) {
   for (int i = 0; i < 4; i++) {

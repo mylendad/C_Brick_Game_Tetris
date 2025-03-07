@@ -19,7 +19,7 @@ endif
 
 .PHONY: install uninstall clean dvi dist test gcov_report
 
-all: install test clean
+all: clean install test gcov_report
 
 build/libtetris.a: $(SRC_FILES)
 	mkdir -p build
@@ -28,13 +28,14 @@ build/libtetris.a: $(SRC_FILES)
 	rm -rf $(OBJ_FILES)
 
 install: clean build/libtetris.a
+	touch highscore.txt
 	echo 0 > build/highscore.txt
 	$(CC) $(CFLAGS) game.c build/libtetris.a -o build/tetris
 
 uninstall:
 	rm -rf build
 
-run: clean install
+run:
 	./build/tetris
 
 test: clean build/libtetris.a
@@ -44,46 +45,59 @@ test: clean build/libtetris.a
 
 
 valgrind: 
-	valgrind --tool=memcheck --leak-check=yes ./s21_test
+	valgrind --tool=memcheck --leak-check=yes ./tests/brick_game_test 
 
 gcov_report:
 	echo 0 > highscore.txt
-	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o brick_game_test 
-	./brick_game_test 
+	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o build/brick_game_test 
+	./build/brick_game_test 
 	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1
 	genhtml -o report/ coverage.info
 	rm -rf *.gcno *.gcov *.gcda *.info *.a tests/*.o
 	open ./report/index.html || xdg-open ./report/index.html
-	
-gcov_report_common:
-	mkdir -p tests/build
-	$(CC) --coverage -fPIC -O0 $(SRC_FILES) $(TEST_DIR)/*.c -o $(TBD)/test_cov_runner $(LDFLAGS)
-	./$(TBD)/test_cov_runner
-
-gcov_report_console: gcov_report_common
-	gcov -H $(TBD)/test_cov_runner-s21*.gcno
 
 clean:
 	rm -rf gcov
 	rm -rf report
-	rm -rf *gcda *gcno result.info result_filtered.info tests/brick_game_test
+	rm -rf *gcda *gcno result.info result_filtered.info tests/brick_game_test tests/brick_game_test.dSYM
 	rm -rf result.info result_filtered.info tests/brick_game_test
 	rm -rf *.out
+	rm -rf highscore.txt
 	rm -rf rm ./tests/tests_log.log
-	rm -rf test
+	rm -f tests/brick_game_test tests/highscore.txt
+	find dvi ! -name 'documentation.tex' -type f -exec rm -f {} +
+	rm -f tetris.tar.gz
+	rm -rf dvi/documentation
 
 dvi:
-	xelatex -output-directory=dvi dvi/documentation.tex
+	# doxygen
+	# open doxygen/html/index.html
+	# pdfly -output-directory=dvi dvi/documentation.tex
+	latex2html dvi/documentation.tex
 
 dist: install
-	tar -czvf tetris.tar.gz Makefile brick_game gui testы game.c game.h Diagram.pdf
+	tar -czvf tetris.tar.gz Makefile brick_game gui tests game.c game.h Diagram.png
 
 style:
 	cp ../materials/linters/.clang-format ./
 	cp ../materials/linters/.clang-format ./tests/
+	cp ../materials/linters/.clang-format ./brick_game/tetris/ 
+	cp ../materials/linters/.clang-format ./gui/cli
 	$(CLANG_FORMAT) -n ./tests/*.c
 	$(CLANG_FORMAT) -i ./tests/*.c
 	$(CLANG_FORMAT) -n ./tests/*.c
+	$(CLANG_FORMAT) -n ./brick_game/tetris/*.c
+	$(CLANG_FORMAT) -i ./brick_game/tetris/*.c
+	$(CLANG_FORMAT) -n ./brick_game/tetris/*.c
+	$(CLANG_FORMAT) -n ./brick_game/tetris/*.h
+	$(CLANG_FORMAT) -i ./brick_game/tetris/*.h
+	$(CLANG_FORMAT) -n ./brick_game/tetris/*.h
+	$(CLANG_FORMAT) -n ./gui/cli*.c
+	$(CLANG_FORMAT) -i ./gui/cli*.c
+	$(CLANG_FORMAT) -n ./gui/cli*.c
+	$(CLANG_FORMAT) -n ./gui/cli*.h
+	$(CLANG_FORMAT) -i ./gui/cli*.h
+	$(CLANG_FORMAT) -n ./gui/cli*.h
 	$(CLANG_FORMAT) -n ./*.c
 	$(CLANG_FORMAT) -i ./*.c
 	$(CLANG_FORMAT) -n ./*.c
@@ -92,6 +106,8 @@ style:
 	$(CLANG_FORMAT) -n ./*.h
 	rm .clang-format
 	rm ./tests/.clang-format
+	rm ./brick_game/tetris
+	rm ./gui/cli
 
 clear:
 	clear

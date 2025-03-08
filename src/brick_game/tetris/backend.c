@@ -1,101 +1,95 @@
 #include "../../game.h"
 
-/** @file backend.c */
-
-/**
- * @brief Функция для сложения двух чисел.
- * @param gameInfo Первое число.
- * @param cursorВторое число.
- */
-void fsm_loop(GameInfo_t *gameInfo, Cursor *cursor,
-              struct timespec *last_move_time, FSM_State current_state) {
+void fsm_loop(GameInfo_t *game_info, Cursor_s *cursor,
+              struct timespec *last_move_time, FSM_State_e current_state) {
   UserAction_t action = Terminate;
   bool hold = false;
   while (!cursor->quit) {
     struct timespec current_time;
     clock_gettime(CLOCK_MONOTONIC, &current_time);
     int ch = getch();
-    action = controller(ch);
+    action = controllerInput(ch);
     if (action >= 0 || action < 8) {
       hold = true;
       userInput(action, hold);
     }
     flushinp();
-    if (!gameInfo->pause && !cursor->gameOver) {
+    if (!game_info->pause && !cursor->game_over) {
       switch (current_state) {
         case START:
-          printField(gameInfo);
+          printField(game_info);
           waitStart(cursor);
           current_state = SHIFT;
           break;
         case SPAWN:
-          if (spawn(gameInfo, cursor))
+          if (spawnShape(game_info, cursor))
             current_state = SHIFT;
           else
             current_state = GAME_OVER;
           break;
         case SHIFT: {
-          bool collision = checkSide(gameInfo, cursor->cursorX,
-                                     cursor->cursorY + 1, cursor->shape);
+          bool collision = checkSide(game_info, cursor->cursor_x,
+                                     cursor->cursor_y + 1, cursor->shape);
           if (collision) current_state = ATTACHING;
           break;
         }
         case ATTACHING:
-          mergeCursor(gameInfo, cursor);
-          clearLines(gameInfo);
+          mergeCursor(game_info, cursor);
+          clearLines(game_info);
           current_state = SPAWN;
           break;
         case GAME_OVER:
-          cursor->gameOver = true;
+          cursor->game_over = true;
           break;
       }
     }
     if (SHIFT)
-      logic(gameInfo, cursor, last_move_time, current_state, &current_time);
+      renderingGame(game_info, cursor, last_move_time, current_state,
+                    &current_time);
   }
 }
 
-void logic(GameInfo_t *gameInfo, Cursor *cursor,
-           struct timespec *last_move_time, FSM_State current_state,
-           struct timespec *current_time) {
-  timer(gameInfo, cursor, last_move_time, current_time, current_state);
-  rendering(gameInfo, cursor);
+void renderingGame(GameInfo_t *game_info, Cursor_s *cursor,
+                   struct timespec *last_move_time, FSM_State_e current_state,
+                   struct timespec *current_time) {
+  timerFunc(game_info, cursor, last_move_time, current_time, current_state);
+  printFrontend(game_info, cursor);
   usleep(10000);
 }
 
 GameInfo_t updateCurrentState() {
-  static GameInfo_t gameInfo;
-  static Cursor cursor;
-  static FSM_State current_state = START;
+  static GameInfo_t game_info;
+  static Cursor_s cursor;
+  static FSM_State_e current_state = START;
   static struct timespec last_move_time = {0};
-  InputContext *ctx = getInputContext();
-  ctx->gameInfo = &gameInfo;
+  InputContext_s *ctx = getInputContext();
+  ctx->game_info = &game_info;
   ctx->cursor = &cursor;
-  initializeGame(&gameInfo, &cursor);
+  initializeGame(&game_info, &cursor);
   clock_gettime(CLOCK_MONOTONIC, &last_move_time);
-  fsm_loop(&gameInfo, &cursor, &last_move_time, current_state);
+  fsm_loop(&game_info, &cursor, &last_move_time, current_state);
 
-  return gameInfo;
+  return game_info;
 }
 
-void timer(GameInfo_t *gameInfo, Cursor *cursor,
-           struct timespec *last_move_time, struct timespec *current_time,
-           FSM_State current_state) {
+void timerFunc(GameInfo_t *game_info, Cursor_s *cursor,
+               struct timespec *last_move_time, struct timespec *current_time,
+               FSM_State_e current_state) {
   long time_diff =
       (current_time->tv_sec - last_move_time->tv_sec) * SECOND +
       (current_time->tv_nsec - last_move_time->tv_nsec) / THOUSAND_SECONDS;
 
-  if (time_diff >= gameInfo->speed && current_state == SHIFT) {
-    if (!checkSide(gameInfo, cursor->cursorX, cursor->cursorY + 1,
+  if (time_diff >= game_info->speed && current_state == SHIFT) {
+    if (!checkSide(game_info, cursor->cursor_x, cursor->cursor_y + 1,
                    cursor->shape) &&
-        gameInfo->pause == 0 && !cursor->gameOver) {
-      cursor->cursorY++;
+        game_info->pause == 0 && !cursor->game_over) {
+      cursor->cursor_y++;
     }
     clock_gettime(CLOCK_MONOTONIC, last_move_time);
   }
 }
 
-UserAction_t controller(int ch) {
+UserAction_t controllerInput(int ch) {
   UserAction_t action = Terminate;
   bool hold = false;
 
@@ -138,43 +132,43 @@ UserAction_t controller(int ch) {
 }
 
 void userInput(UserAction_t action, bool hold) {
-  InputContext *ctx = getInputContext();
-  GameInfo_t *gameInfo = ctx->gameInfo;
-  Cursor *cursor = ctx->cursor;
+  InputContext_s *ctx = getInputContext();
+  GameInfo_t *game_info = ctx->game_info;
+  Cursor_s *cursor = ctx->cursor;
 
   switch (action) {
     case Left:
       if (hold &&
-          !checkSide(gameInfo, cursor->cursorX - 1, cursor->cursorY,
+          !checkSide(game_info, cursor->cursor_x - 1, cursor->cursor_y,
                      cursor->shape) &&
-          gameInfo->pause == 0)
-        cursor->cursorX--;
+          game_info->pause == 0)
+        cursor->cursor_x--;
       break;
     case Right:
       if (hold &&
-          !checkSide(gameInfo, cursor->cursorX + 1, cursor->cursorY,
+          !checkSide(game_info, cursor->cursor_x + 1, cursor->cursor_y,
                      cursor->shape) &&
-          gameInfo->pause == 0)
-        cursor->cursorX++;
+          game_info->pause == 0)
+        cursor->cursor_x++;
       break;
     case Action:
-      if (hold && gameInfo->pause == 0) rotateShape(gameInfo, cursor);
+      if (hold && game_info->pause == 0) rotateShape(game_info, cursor);
       break;
     case Down:
-      if (hold && gameInfo->pause == 0) {
-        while (!checkSide(gameInfo, cursor->cursorX, cursor->cursorY + 1,
+      if (hold && game_info->pause == 0) {
+        while (!checkSide(game_info, cursor->cursor_x, cursor->cursor_y + 1,
                           cursor->shape))
-          cursor->cursorY++;
+          cursor->cursor_y++;
       }
       break;
     case Start:
-      if (hold) initializeGame(gameInfo, cursor);
+      if (hold) initializeGame(game_info, cursor);
       break;
     case Pause:
-      if (!gameInfo->pause)
-        gameInfo->pause = 1;
+      if (!game_info->pause)
+        game_info->pause = 1;
       else
-        gameInfo->pause = 0;
+        game_info->pause = 0;
       break;
       break;
     case Terminate:
@@ -183,36 +177,36 @@ void userInput(UserAction_t action, bool hold) {
   }
 }
 
-static InputContext *getInputContext() {
-  static InputContext context;
+static InputContext_s *getInputContext() {
+  static InputContext_s context;
   return &context;
 }
 
-bool spawn(GameInfo_t *gameInfo, Cursor *cursor) {
-  int shapeIndex = rand() % 7;
+bool spawnShape(GameInfo_t *game_info, Cursor_s *cursor) {
+  int shape_index = rand() % 7;
   bool result = true;
-  cursor->cursorX = WIDTH / 2 - 2;
-  cursor->cursorY = 0;
-  if (checkSide(gameInfo, cursor->cursorX, cursor->cursorY, cursor->shape))
+  cursor->cursor_x = WIDTH / 2 - 2;
+  cursor->cursor_y = 0;
+  if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape))
     result = false;
   else {
-    char createNext = 1;
+    char create_next = 1;
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        cursor->shape[i][j] = gameInfo->next[i][j];
+        cursor->shape[i][j] = game_info->next[i][j];
       }
     }
-    cursor->type = cursor->nextType;
+    cursor->type = cursor->next_type;
 
-    createShape(gameInfo, cursor, shapeIndex, createNext);
+    createShape(game_info, cursor, shape_index, create_next);
 
-    if (checkSide(gameInfo, cursor->cursorX, cursor->cursorY, cursor->shape))
+    if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape))
       result = false;
   }
   return result;
 }
 
-void createShape(GameInfo_t *gameInfo, Cursor *cursor, int shapeIndex,
+void createShape(GameInfo_t *game_info, Cursor_s *cursor, int shape_index,
                  int flag) {
   int shapes[7][4][4] = {
       {{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}},  // I
@@ -229,53 +223,53 @@ void createShape(GameInfo_t *gameInfo, Cursor *cursor, int shapeIndex,
   if (flag == 0) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        cursor->shape[i][j] = shapes[shapeIndex][i][j];
+        cursor->shape[i][j] = shapes[shape_index][i][j];
       }
     }
-    cursor->type = types[shapeIndex];
-    cursor->rotationPosition = 0;
+    cursor->type = types[shape_index];
+    cursor->rotation_position = 0;
   } else if (flag == 1) {
-    cursor->nextType = types[shapeIndex];
+    cursor->next_type = types[shape_index];
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        gameInfo->next[i][j] = shapes[shapeIndex][i][j];
+        game_info->next[i][j] = shapes[shape_index][i][j];
       }
     }
   }
 }
 
-void rotateShape(GameInfo_t *gameInfo, Cursor *cursor) {
+void rotateShape(GameInfo_t *game_info, Cursor_s *cursor) {
   switch (cursor->type) {
     case 'I':
-      sziShapeRotate(gameInfo, cursor);
+      sziShapeRotate(game_info, cursor);
       break;
 
     case 'J':
-      jltShapeRotate(gameInfo, cursor);
+      jltShapeRotate(game_info, cursor);
       break;
 
     case 'L':
-      jltShapeRotate(gameInfo, cursor);
+      jltShapeRotate(game_info, cursor);
 
       break;
     case 'O':
       break;
 
     case 'S':
-      sziShapeRotate(gameInfo, cursor);
+      sziShapeRotate(game_info, cursor);
       break;
 
     case 'Z':
-      sziShapeRotate(gameInfo, cursor);
+      sziShapeRotate(game_info, cursor);
       break;
 
     case 'T':
-      jltShapeRotate(gameInfo, cursor);
+      jltShapeRotate(game_info, cursor);
       break;
   }
 }
 
-void jltShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
+void jltShapeRotate(GameInfo_t *game_info, Cursor_s *cursor) {
   int temp[4][4];
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
@@ -286,12 +280,12 @@ void jltShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
     for (int j = 0; j < 4; j++) {
       int x = j - 2;
       int y = i - 1;
-      int newX = -y;
-      int newY = x;
-      cursor->shape[newY + 1][newX + 2] = temp[i][j];
+      int new_x = -y;
+      int new_y = x;
+      cursor->shape[new_y + 1][new_x + 2] = temp[i][j];
     }
   }
-  if (checkSide(gameInfo, cursor->cursorX, cursor->cursorY, cursor->shape)) {
+  if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape)) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = temp[i][j];
@@ -300,29 +294,29 @@ void jltShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
   }
 }
 
-void sziShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
+void sziShapeRotate(GameInfo_t *game_info, Cursor_s *cursor) {
   int temp[4][4];
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       temp[i][j] = cursor->shape[i][j];
     }
   }
-  if (cursor->rotationPosition == 0) {
+  if (cursor->rotation_position == 0) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = temp[j][3 - i];
       }
     }
-    cursor->rotationPosition = 1;
+    cursor->rotation_position = 1;
   } else {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = temp[3 - j][i];
       }
     }
-    cursor->rotationPosition = 0;
+    cursor->rotation_position = 0;
   }
-  if (checkSide(gameInfo, cursor->cursorX, cursor->cursorY, cursor->shape)) {
+  if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape)) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = temp[i][j];
@@ -331,12 +325,12 @@ void sziShapeRotate(GameInfo_t *gameInfo, Cursor *cursor) {
   }
 }
 
-bool checkSide(GameInfo_t *gameInfo, int x, int y, int cursor[4][4]) {
+bool checkSide(GameInfo_t *game_info, int x, int y, int cursor[4][4]) {
   bool result = false;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       if (cursor[i][j] && (x + j < 0 || x + j >= WIDTH || y + i >= HEIGHT ||
-                           gameInfo->field[y + i][x + j])) {
+                           game_info->field[y + i][x + j])) {
         result = true;
       }
     }
@@ -344,106 +338,107 @@ bool checkSide(GameInfo_t *gameInfo, int x, int y, int cursor[4][4]) {
   return result;
 }
 
-int clearLines(GameInfo_t *gameInfo) {
-  int linesCleared = 0;
+int clearLines(GameInfo_t *game_info) {
+  int lines_cleared = 0;
 
   for (int i = HEIGHT - 1; i >= 0; i--) {
     bool full = true;
     for (int j = 0; j < WIDTH; j++) {
-      if (!gameInfo->field[i][j]) {
+      if (!game_info->field[i][j]) {
         full = false;
         break;
       }
     }
     if (full) {
       for (int k = i; k > 0; k--) {
-        memcpy(gameInfo->field[k], gameInfo->field[k - 1], WIDTH * sizeof(int));
+        memcpy(game_info->field[k], game_info->field[k - 1],
+               WIDTH * sizeof(int));
       }
-      memset(gameInfo->field[0], 0, WIDTH * sizeof(int));
-      linesCleared++;
+      memset(game_info->field[0], 0, WIDTH * sizeof(int));
+      lines_cleared++;
       i++;
     }
   }
 
-  switch (linesCleared) {
+  switch (lines_cleared) {
     case 1:
-      gameInfo->score += 100;
+      game_info->score += 100;
       break;
     case 2:
-      gameInfo->score += 300;
+      game_info->score += 300;
       break;
     case 3:
-      gameInfo->score += 700;
+      game_info->score += 700;
       break;
     case 4:
-      gameInfo->score += 1500;
+      game_info->score += 1500;
       break;
   }
 
-  int new_level = gameInfo->score / SCORE_UP_LEVEL + 1;
-  if (new_level > gameInfo->level && new_level <= MAX_LEVEL) {
-    gameInfo->level = new_level;
-    gameInfo->speed = START_SPEED - (gameInfo->level - 1) * SPEED_STEP;
-    if (gameInfo->speed < MIN_SPEED) gameInfo->speed = MIN_SPEED;
+  int new_level = game_info->score / SCORE_UP_LEVEL + 1;
+  if (new_level > game_info->level && new_level <= MAX_LEVEL) {
+    game_info->level = new_level;
+    game_info->speed = START_SPEED - (game_info->level - 1) * SPEED_STEP;
+    if (game_info->speed < MIN_SPEED) game_info->speed = MIN_SPEED;
   }
 
-  if (gameInfo->score > gameInfo->high_score) {
-    gameInfo->high_score = gameInfo->score;
-    saveHighScore(gameInfo->high_score);
+  if (game_info->score > game_info->high_score) {
+    game_info->high_score = game_info->score;
+    saveHighScore(game_info->high_score);
   }
-  return linesCleared;
+  return lines_cleared;
 }
 
-void saveHighScore(int highScore) {
+void saveHighScore(int high_score) {
   FILE *file = fopen("highscore.txt", "w");
   if (file) {
-    if (highScore > loadHighScore()) {
-      fprintf(file, "%d", highScore);
+    if (high_score > loadHighScore()) {
+      fprintf(file, "%d", high_score);
       fclose(file);
     }
   }
 }
 
-void initializeGame(GameInfo_t *gameInfo, Cursor *cursor) {
-  int createNew = 0;
-  int createNext = 1;
-  int shapeIndex = rand() % 7;
-  gameInfo->field = (int **)calloc(HEIGHT, sizeof(int *));
+void initializeGame(GameInfo_t *game_info, Cursor_s *cursor) {
+  int create_new = 0;
+  int create_next = 1;
+  int shape_index = rand() % 7;
+  game_info->field = (int **)calloc(HEIGHT, sizeof(int *));
   for (int i = 0; i < HEIGHT; i++) {
-    gameInfo->field[i] = (int *)calloc(WIDTH, sizeof(int));
+    game_info->field[i] = (int *)calloc(WIDTH, sizeof(int));
     for (int j = 0; j < WIDTH; j++) {
-      gameInfo->field[i][j] = 0;
+      game_info->field[i][j] = 0;
     }
   }
 
-  gameInfo->next = (int **)calloc(4, sizeof(int *));
+  game_info->next = (int **)calloc(4, sizeof(int *));
   for (int i = 0; i < 4; i++) {
-    gameInfo->next[i] = (int *)calloc(4, sizeof(int));
+    game_info->next[i] = (int *)calloc(4, sizeof(int));
     for (int j = 0; j < 4; j++) {
-      gameInfo->next[i][j] = 0;
+      game_info->next[i][j] = 0;
     }
   }
 
-  gameInfo->score = 0;
-  gameInfo->high_score = loadHighScore();
-  gameInfo->level = 1;
-  gameInfo->speed = START_SPEED;
-  cursor->gameOver = false;
-  gameInfo->pause = 0;
+  game_info->score = 0;
+  game_info->high_score = loadHighScore();
+  game_info->level = 1;
+  game_info->speed = START_SPEED;
+  cursor->game_over = false;
+  game_info->pause = 0;
 
   srand(time(NULL));
-  createShape(gameInfo, cursor, shapeIndex, createNew);
-  createShape(gameInfo, cursor, shapeIndex, createNext);
-  createShape(gameInfo, cursor, shapeIndex, createNew);
-  cursor->cursorX = WIDTH / 2 - 2;
-  cursor->cursorY = 0;
+  createShape(game_info, cursor, shape_index, create_new);
+  createShape(game_info, cursor, shape_index, create_next);
+  createShape(game_info, cursor, shape_index, create_new);
+  cursor->cursor_x = WIDTH / 2 - 2;
+  cursor->cursor_y = 0;
 }
 
-void mergeCursor(GameInfo_t *gameInfo, Cursor *cursor) {
+void mergeCursor(GameInfo_t *game_info, Cursor_s *cursor) {
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       if (cursor->shape[i][j]) {
-        gameInfo->field[cursor->cursorY + i][cursor->cursorX + j] =
+        game_info->field[cursor->cursor_y + i][cursor->cursor_x + j] =
             cursor->shape[i][j];
       }
     }
@@ -452,23 +447,23 @@ void mergeCursor(GameInfo_t *gameInfo, Cursor *cursor) {
 
 int loadHighScore() {
   FILE *file = fopen("highscore.txt", "r");
-  int highScore = 0;
+  int high_score = 0;
 
   if (file) {
-    fscanf(file, "%d", &highScore);
+    fscanf(file, "%d", &high_score);
     fclose(file);
   } else {
     file = fopen("highscore.txt", "w");
     if (file) {
-      fprintf(file, "%d", highScore);
+      fprintf(file, "%d", high_score);
       fclose(file);
     }
   }
 
-  return highScore;
+  return high_score;
 }
 
-void waitStart(Cursor *cursor) {
+void waitStart(Cursor_s *cursor) {
   if (!cursor->start) {
     refresh();
     while (getch() != '\n') printStart();

@@ -48,23 +48,23 @@ typedef enum State {
   ATTACHING,
   SHIFT,
   GAME_OVER
-} FSM_State;
+} FSM_State_e;
 
 typedef struct {
   int shape[4][4];
   char type;
-  char nextType;
-  int cursorX, cursorY;
-  int rotationPosition;
+  char next_type;
+  int cursor_x, cursor_y;
+  int rotation_position;
   int quit;
   bool start;
-  bool gameOver;
-} Cursor;
+  bool game_over;
+} Cursor_s;
 
 typedef struct {
-  GameInfo_t *gameInfo;
-  Cursor *cursor;
-} InputContext;
+  GameInfo_t *game_info;
+  Cursor_s *cursor;
+} InputContext_s;
 
 #include "./brick_game/tetris/backend.h"
 #include "./gui/cli/frontend.h"

@@ -1,10 +1,5 @@
 #include "../../game.h"
 
-/** @file frontend.c */
-
-/**
- * @note Эта функция может вызывать исключение.
- */
 void initColor() {
   start_color();
   init_pair(1, COLOR_RED, COLOR_BLACK);
@@ -17,7 +12,7 @@ void initColor() {
   init_pair(8, COLOR_WHITE, COLOR_BLACK);
 }
 
-void rendering(GameInfo_t *gameInfo, Cursor *cursor) {
+void printFrontend(GameInfo_t *gameInfo, Cursor_s *cursor) {
   clear();
 
   printTablo(gameInfo);
@@ -27,7 +22,7 @@ void rendering(GameInfo_t *gameInfo, Cursor *cursor) {
   if (gameInfo->pause != 0) {
     printPause();
   }
-  if (cursor->gameOver) {
+  if (cursor->game_over) {
     printGameOver();
   }
 
@@ -61,7 +56,7 @@ void printField(GameInfo_t *gameInfo) {
   }
 }
 
-void printShapes(Cursor *cursor) {
+void printShapes(Cursor_s *cursor) {
   int color = 0;
   switch (cursor->type) {
     case 'I':
@@ -90,7 +85,8 @@ void printShapes(Cursor *cursor) {
     for (int j = 0; j < 4; j++) {
       if (cursor->shape[i][j]) {
         attron(COLOR_PAIR(color));
-        mvprintw(cursor->cursorY + i + 1, (cursor->cursorX + j) * 2 + 1, "[]");
+        mvprintw(cursor->cursor_y + i + 1, (cursor->cursor_x + j) * 2 + 1,
+                 "[]");
         attron(COLOR_PAIR(color));
       }
     }

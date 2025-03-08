@@ -4,9 +4,9 @@
 #include "../../game.h"
 
 void initColor();
-void rendering(GameInfo_t *gameInfo, Cursor *cursor);
+void printFrontend(GameInfo_t *gameInfo, Cursor_s *cursor);
 void printStart();
-void printShapes(Cursor *cursor);
+void printShapes(Cursor_s *cursor);
 void printNext(GameInfo_t *gameInfo);
 void printField(GameInfo_t *gameInfo);
 void printTablo();

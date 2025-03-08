@@ -59,6 +59,7 @@ gcov_report:
 clean:
 	rm -rf gcov
 	rm -rf report
+	rm -rf build
 	rm -rf *gcda *gcno result.info result_filtered.info tests/brick_game_test tests/brick_game_test.dSYM
 	rm -rf result.info result_filtered.info tests/brick_game_test
 	rm -rf *.out

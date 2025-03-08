@@ -64,7 +64,7 @@ clean:
 	rm -rf result.info result_filtered.info tests/brick_game_test
 	rm -rf *.out
 	rm -rf highscore.txt
-	rm -rf rm ./tests/tests_log.log
+	rm -rf ./tests/tests_log.log
 	rm -f tests/brick_game_test tests/highscore.txt
 	find dvi ! -name 'documentation.tex' -type f -exec rm -f {} +
 	rm -f tetris.tar.gz

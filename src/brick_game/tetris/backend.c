@@ -1,4 +1,6 @@
-#include "../../game.h"
+#include "backend.h"
+
+#include "../../gui/cli/frontend.h"
 
 void fsm_loop(GameInfo_t *game_info, Cursor_s *cursor,
               struct timespec *last_move_time, FSM_State_e current_state) {
@@ -54,7 +56,7 @@ void renderingGame(GameInfo_t *game_info, Cursor_s *cursor,
                    struct timespec *current_time) {
   timerFunc(game_info, cursor, last_move_time, current_time, current_state);
   printFrontend(game_info, cursor);
-  usleep(10000);
+  usleep(SECOND * 10);
 }
 
 GameInfo_t updateCurrentState() {
@@ -91,44 +93,35 @@ void timerFunc(GameInfo_t *game_info, Cursor_s *cursor,
 
 UserAction_t controllerInput(int ch) {
   UserAction_t action = Terminate;
-  bool hold = false;
 
   switch (ch) {
     case KEY_ENTER:
       action = Start;
-      hold = true;
       break;
     case KEY_LEFT:
       action = Left;
-      hold = true;
       break;
     case KEY_RIGHT:
       action = Right;
-      hold = true;
       break;
     case KEY_DOWN:
       action = Down;
-      hold = true;
       break;
     case ' ':
       action = Action;
-      hold = true;
       break;
     case 'q':
       action = Terminate;
-      hold = true;
       break;
     case 'p':
       action = Pause;
-      hold = true;
       break;
     default:
       action = ch;
-      hold = false;
       break;
   }
 
-  if (hold) return action;
+  return action;
 }
 
 void userInput(UserAction_t action, bool hold) {
@@ -141,21 +134,23 @@ void userInput(UserAction_t action, bool hold) {
       if (hold &&
           !checkSide(game_info, cursor->cursor_x - 1, cursor->cursor_y,
                      cursor->shape) &&
-          game_info->pause == 0)
+          game_info->pause == FALSE)
         cursor->cursor_x--;
       break;
     case Right:
       if (hold &&
           !checkSide(game_info, cursor->cursor_x + 1, cursor->cursor_y,
                      cursor->shape) &&
-          game_info->pause == 0)
+          game_info->pause == FALSE)
         cursor->cursor_x++;
       break;
+    case Up:
+      break;
     case Action:
-      if (hold && game_info->pause == 0) rotateShape(game_info, cursor);
+      if (hold && game_info->pause == FALSE) rotateShape(game_info, cursor);
       break;
     case Down:
-      if (hold && game_info->pause == 0) {
+      if (hold && game_info->pause == FALSE) {
         while (!checkSide(game_info, cursor->cursor_x, cursor->cursor_y + 1,
                           cursor->shape))
           cursor->cursor_y++;
@@ -166,39 +161,37 @@ void userInput(UserAction_t action, bool hold) {
       break;
     case Pause:
       if (!game_info->pause)
-        game_info->pause = 1;
+        game_info->pause = TRUE;
       else
-        game_info->pause = 0;
+        game_info->pause = FALSE;
       break;
       break;
     case Terminate:
-      cursor->quit = 1;
+      cursor->quit = TRUE;
       break;
   }
 }
 
-static InputContext_s *getInputContext() {
+InputContext_s *getInputContext() {
   static InputContext_s context;
   return &context;
 }
 
 bool spawnShape(GameInfo_t *game_info, Cursor_s *cursor) {
-  int shape_index = rand() % 7;
   bool result = true;
-  cursor->cursor_x = WIDTH / 2 - 2;
+  cursor->cursor_x = CENTER_TOP;
   cursor->cursor_y = 0;
   if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape))
     result = false;
   else {
-    char create_next = 1;
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = game_info->next[i][j];
       }
     }
     cursor->type = cursor->next_type;
-
-    createShape(game_info, cursor, shape_index, create_next);
+    int shape_index = rand() % 7;
+    createShape(game_info, cursor, shape_index, NEXT_SHAPE);
 
     if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape))
       result = false;
@@ -220,15 +213,15 @@ void createShape(GameInfo_t *game_info, Cursor_s *cursor, int shape_index,
 
   char types[] = {'I', 'O', 'T', 'Z', 'S', 'J', 'L'};
 
-  if (flag == 0) {
+  if (flag == NEW_SHAPE) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         cursor->shape[i][j] = shapes[shape_index][i][j];
       }
     }
     cursor->type = types[shape_index];
-    cursor->rotation_position = 0;
-  } else if (flag == 1) {
+    cursor->rotation_position = HORISONTAL;
+  } else if (flag == NEXT_SHAPE) {
     cursor->next_type = types[shape_index];
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
@@ -362,16 +355,16 @@ int clearLines(GameInfo_t *game_info) {
 
   switch (lines_cleared) {
     case 1:
-      game_info->score += 100;
+      game_info->score += 100;  // points for 1 line
       break;
     case 2:
-      game_info->score += 300;
+      game_info->score += 300;  // points for 2 lines
       break;
     case 3:
-      game_info->score += 700;
+      game_info->score += 700;  // points for 3 lines
       break;
     case 4:
-      game_info->score += 1500;
+      game_info->score += 1500;  // points for 4 lines
       break;
   }
 
@@ -400,9 +393,6 @@ void saveHighScore(int high_score) {
 }
 
 void initializeGame(GameInfo_t *game_info, Cursor_s *cursor) {
-  int create_new = 0;
-  int create_next = 1;
-  int shape_index = rand() % 7;
   game_info->field = (int **)calloc(HEIGHT, sizeof(int *));
   for (int i = 0; i < HEIGHT; i++) {
     game_info->field[i] = (int *)calloc(WIDTH, sizeof(int));
@@ -427,10 +417,12 @@ void initializeGame(GameInfo_t *game_info, Cursor_s *cursor) {
   game_info->pause = 0;
 
   srand(time(NULL));
-  createShape(game_info, cursor, shape_index, create_new);
-  createShape(game_info, cursor, shape_index, create_next);
-  createShape(game_info, cursor, shape_index, create_new);
-  cursor->cursor_x = WIDTH / 2 - 2;
+  int shape_index = rand() % 7;
+  createShape(game_info, cursor, shape_index, NEW_SHAPE);
+  createShape(game_info, cursor, shape_index, NEXT_SHAPE);
+  createShape(game_info, cursor, shape_index, NEW_SHAPE);
+
+  cursor->cursor_x = CENTER_TOP;
   cursor->cursor_y = 0;
 }
 
@@ -459,7 +451,6 @@ int loadHighScore() {
       fclose(file);
     }
   }
-
   return high_score;
 }
 

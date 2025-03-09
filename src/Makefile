@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -std=c11  -g -lncurses
+CFLAGS = -std=c11 -Wall -Werror -Wextra -g -lncurses
 LDFLAGS = -lcheck -lsubunit -lm
 CHECK = -lcheck
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage
 CLANG_FORMAT = clang-format-18
-SRC_FILES = ./brick_game/tetris/*.c ./gui/cli/*.c
+SRC_FILES = ./brick_game/tetris/backend.c ./gui/cli/*.c
 SRC_TEST = ./tests/*.c
 TEST_DIR = tests
 OBJ_FILES = ./*.o
@@ -30,7 +30,12 @@ build/libtetris.a: $(SRC_FILES)
 install: clean build/libtetris.a
 	touch highscore.txt
 	echo 0 > build/highscore.txt
-	$(CC) $(CFLAGS) game.c build/libtetris.a -o build/tetris
+	$(CC) $(CFLAGS) ./brick_game/tetris/game.c build/libtetris.a -o build/tetris
+
+# install:
+# 	mkdir -p build
+# 	$(CC) $(CFLAGS) brick_game/tetris/*.c gui/cli/*.c -o tetris -o build/tetris
+# 	echo 0 > build/max_score.txt
 
 uninstall:
 	rm -rf build
@@ -38,7 +43,7 @@ uninstall:
 run:
 	./build/tetris
 
-test: clean build/libtetris.a
+test: build/libtetris.a
 	echo 0 > tests/highscore.txt
 	$(CC) $(CFLAGS) $(SRC_TEST) build/libtetris.a $(CHECK) -o tests/brick_game_test 
 	./tests/brick_game_test 
@@ -51,8 +56,9 @@ gcov_report:
 	echo 0 > highscore.txt
 	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o build/brick_game_test 
 	./build/brick_game_test 
-	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1
-	genhtml -o report/ coverage.info
+	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1 
+	lcov --extract coverage.info '*brick_game/tetris/backend.c' '*gui/cli/*' -o coverage_filtered.info 
+	genhtml -o report/ coverage_filtered.info
 	rm -rf *.gcno *.gcov *.gcda *.info *.a tests/*.o
 	open ./report/index.html || xdg-open ./report/index.html
 

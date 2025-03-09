@@ -10,6 +10,19 @@
 
 #define WIDTH 10
 #define HEIGHT 20
+#define CENTER WIDTH / 2 + 2
+#define CENTER_TOP WIDTH / 2 - 2
+#define RIGHT_WALL WIDTH * 2 + 2
+#define ON_THE_RIGHT WIDTH * 2 + 4
+
+#define HORISONTAL 0
+#define VERTICAL 1
+
+#define NEW_SHAPE 0
+#define NEXT_SHAPE 1
+
+#define TRUE 1
+#define FALSE 0
 
 #define MAX_LEVEL 10
 #define SCORE_UP_LEVEL 600
@@ -19,6 +32,14 @@
 
 #define SECOND 1000
 #define THOUSAND_SECONDS 1000000
+
+#define RED 1
+#define GREEN 2
+#define BLUE 3
+#define YELLOW 4
+#define CYAN 5
+#define FIOLET 6
+#define WHITE 7
 
 typedef enum {
   Start,
@@ -41,14 +62,7 @@ typedef struct {
   int pause;
 } GameInfo_t;
 
-typedef enum State {
-  START,
-  SPAWN,
-  MOVING,
-  ATTACHING,
-  SHIFT,
-  GAME_OVER
-} FSM_State_e;
+typedef enum State { START, SPAWN, ATTACHING, SHIFT, GAME_OVER } FSM_State_e;
 
 typedef struct {
   int shape[4][4];
@@ -65,8 +79,5 @@ typedef struct {
   GameInfo_t *game_info;
   Cursor_s *cursor;
 } InputContext_s;
-
-#include "./brick_game/tetris/backend.h"
-#include "./gui/cli/frontend.h"
 
 #endif  // GAME_H

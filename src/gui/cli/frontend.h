@@ -1,7 +1,7 @@
 #ifndef FRONTEND_H
 #define FRONTEND_H
 
-#include "../../game.h"
+#include "../../brick_game/tetris/game.h"
 
 void initColor();
 void printFrontend(GameInfo_t *gameInfo, Cursor_s *cursor);

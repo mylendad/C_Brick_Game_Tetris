@@ -1,5 +1,8 @@
 #include "game.h"
 
+#include "../../gui/cli/frontend.h"
+#include "backend.h"
+
 int main() {
   initscr();
   cbreak();

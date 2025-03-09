@@ -1,21 +1,19 @@
 #ifndef BACKEND_H
 #define BACKEND_H
 
-#include "../../game.h"
+#include "game.h"
 
 GameInfo_t updateCurrentState();
 void initializeGame(GameInfo_t *gameInfo, Cursor_s *cursor);
-static Cursor_s *getCurrentCursor();
-static void setCurrentContext(GameInfo_t *gameInfo, Cursor_s *cursor);
 void fsm_loop(GameInfo_t *gameInfo, Cursor_s *cursor,
               struct timespec *last_move_time, FSM_State_e current_state);
 int clearLines(GameInfo_t *gameInfo);
-bool checkSide(GameInfo_t *gameInfo, int x, int y, int cursor[4][4]);
+bool checkSide(GameInfo_t *game_info, int x, int y, int cursor[4][4]);
 void mergeCursor(GameInfo_t *gameInfo, Cursor_s *cursor);
 
 UserAction_t controllerInput(int ch);
 void userInput(UserAction_t action, bool hold);
-static InputContext_s *getInputContext();
+InputContext_s *getInputContext();
 
 void renderingGame(GameInfo_t *gameInfo, Cursor_s *cursor,
                    struct timespec *last_move_time, FSM_State_e current_state,
@@ -25,7 +23,7 @@ void timerFunc(GameInfo_t *gameInfo, Cursor_s *cursor,
                FSM_State_e current_state);
 void moveDown(GameInfo_t *gameInfo, Cursor_s *cursor);
 
-void createShape(GameInfo_t *gameInfo, Cursor_s *cursor, int shapeIndex,
+void createShape(GameInfo_t *game_info, Cursor_s *cursor, int shape_index,
                  int flag);
 bool spawnShape(GameInfo_t *gameInfo, Cursor_s *cursor);
 void rotateShape(GameInfo_t *gameInfo, Cursor_s *cursor);

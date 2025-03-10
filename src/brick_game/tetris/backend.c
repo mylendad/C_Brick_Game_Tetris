@@ -20,7 +20,8 @@ void fsm_loop(GameInfo_t *game_info, Cursor_s *cursor,
       switch (current_state) {
         case START:
           printField(game_info);
-          waitStart(cursor);
+          int h = getch();
+          waitStart(cursor, h);
           current_state = SHIFT;
           break;
         case SPAWN:
@@ -454,9 +455,10 @@ int loadHighScore() {
   return high_score;
 }
 
-void waitStart(Cursor_s *cursor) {
+int waitStart(Cursor_s *cursor, int ch) {
   if (!cursor->start) {
     refresh();
-    while (getch() != '\n') printStart();
+    while (ch != '\n') printStart();
   }
+  return ch;
 }

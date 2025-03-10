@@ -57,7 +57,7 @@ gcov_report:
 	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o build/brick_game_test 
 	./build/brick_game_test 
 	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1 
-	lcov --extract coverage.info '*brick_game/tetris/backend.c' '*gui/cli/*' -o coverage_filtered.info 
+	lcov --extract coverage.info '*brick_game/tetris/backend.c' -o coverage_filtered.info 
 	genhtml -o report/ coverage_filtered.info
 	rm -rf *.gcno *.gcov *.gcda *.info *.a tests/*.o
 	open ./report/index.html || xdg-open ./report/index.html

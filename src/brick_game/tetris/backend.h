@@ -33,7 +33,7 @@ void jltShapeRotate(GameInfo_t *gameInfo, Cursor_s *cursor);
 void saveHighScore(int highScore);
 int loadHighScore();
 
-void waitStart(Cursor_s *cursor);
+int waitStart(Cursor_s *cursor, int ch);
 void waitQuit(Cursor_s *cursor);
 
 #endif  // BACKEND_H

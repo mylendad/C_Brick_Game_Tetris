@@ -5,8 +5,8 @@
 
 GameInfo_t updateCurrentState();
 void initializeGame(GameInfo_t *gameInfo, Cursor_s *cursor);
-void fsm_loop(GameInfo_t *gameInfo, Cursor_s *cursor,
-              struct timespec *last_move_time, FSM_State_e current_state);
+void fsmLoop(GameInfo_t *gameInfo, Cursor_s *cursor,
+             struct timespec *last_move_time, FSM_State_e current_state);
 int clearLines(GameInfo_t *gameInfo);
 bool checkSide(GameInfo_t *game_info, int x, int y, int cursor[4][4]);
 void mergeCursor(GameInfo_t *gameInfo, Cursor_s *cursor);
@@ -18,9 +18,9 @@ InputContext_s *getInputContext();
 void renderingGame(GameInfo_t *gameInfo, Cursor_s *cursor,
                    struct timespec *last_move_time, FSM_State_e current_state,
                    struct timespec *current_time);
-void timerFunc(GameInfo_t *gameInfo, Cursor_s *cursor,
-               struct timespec *last_move_time, struct timespec *current_time,
-               FSM_State_e current_state);
+void moveOnTimerFunc(GameInfo_t *gameInfo, Cursor_s *cursor,
+                     struct timespec *last_move_time,
+                     struct timespec *current_time, FSM_State_e current_state);
 void moveDown(GameInfo_t *gameInfo, Cursor_s *cursor);
 
 void createShape(GameInfo_t *game_info, Cursor_s *cursor, int shape_index,

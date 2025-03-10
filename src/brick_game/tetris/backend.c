@@ -3,14 +3,6 @@
 #include "../../gui/cli/frontend.h"
 #include "fsm_loop.c"
 
-void renderingGame(GameInfo_t *game_info, Cursor_s *cursor,
-                   struct timespec *last_move_time, FSM_State_e current_state,
-                   struct timespec *current_time) {
-  timerFunc(game_info, cursor, last_move_time, current_time, current_state);
-  printFrontend(game_info, cursor);
-  usleep(SECOND * 10);
-}
-
 GameInfo_t updateCurrentState() {
   static GameInfo_t game_info;
   static Cursor_s cursor;
@@ -21,17 +13,27 @@ GameInfo_t updateCurrentState() {
   ctx->cursor = &cursor;
   initializeGame(&game_info, &cursor);
   clock_gettime(CLOCK_MONOTONIC, &last_move_time);
-  fsm_loop(&game_info, &cursor, &last_move_time, current_state);
+  fsmLoop(&game_info, &cursor, &last_move_time, current_state);
 
   return game_info;
 }
 
-void timerFunc(GameInfo_t *game_info, Cursor_s *cursor,
-               struct timespec *last_move_time, struct timespec *current_time,
-               FSM_State_e current_state) {
-  long time_diff =
-      (current_time->tv_sec - last_move_time->tv_sec) * SECOND +
-      (current_time->tv_nsec - last_move_time->tv_nsec) / THOUSAND_SECONDS;
+void renderingGame(GameInfo_t *game_info, Cursor_s *cursor,
+                   struct timespec *last_move_time, FSM_State_e current_state,
+                   struct timespec *current_time) {
+  moveOnTimerFunc(game_info, cursor, last_move_time, current_time,
+                  current_state);
+  printFrontend(game_info, cursor);
+  usleep(SECOND * 10);
+}
+
+void moveOnTimerFunc(GameInfo_t *game_info, Cursor_s *cursor,
+                     struct timespec *last_move_time,
+                     struct timespec *current_time, FSM_State_e current_state) {
+  long time_diff = (current_time->tv_sec - last_move_time->tv_sec) * SECOND +
+                   (current_time->tv_nsec - last_move_time->tv_nsec) /
+                       THOUSAND_SECONDS;  // tv_sec - time in seconds; tv_nsec -
+                                          // time in nanoseconds
 
   if (time_diff >= game_info->speed && current_state == SHIFT) {
     if (!checkSide(game_info, cursor->cursor_x, cursor->cursor_y + 1,
@@ -296,9 +298,10 @@ int clearLines(GameInfo_t *game_info) {
     if (full) {
       for (int k = i; k > 0; k--) {
         memcpy(game_info->field[k], game_info->field[k - 1],
-               WIDTH * sizeof(int));
+               WIDTH * sizeof(int));  // copy the lines above to the line below
       }
-      memset(game_info->field[0], 0, WIDTH * sizeof(int));
+      memset(game_info->field[0], 0,
+             WIDTH * sizeof(int));  // initialize top row with zeros
       lines_cleared++;
       i++;
     }

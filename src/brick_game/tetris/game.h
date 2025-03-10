@@ -62,7 +62,7 @@ typedef struct {
   int pause;
 } GameInfo_t;
 
-typedef enum State { START, SPAWN, ATTACHING, SHIFT, GAME_OVER } FSM_State_e;
+typedef enum State { START, SHIFT, ATTACHING, SPAWN, GAME_OVER } FSM_State_e;
 
 typedef struct {
   int shape[4][4];

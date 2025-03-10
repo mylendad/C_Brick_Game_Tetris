@@ -50,7 +50,7 @@ START_TEST(test_timerFunc) {
   current_time.tv_sec = last_move_time.tv_sec;
   current_time.tv_nsec = last_move_time.tv_nsec + 101 * THOUSAND_SECONDS;
 
-  timerFunc(&gi, &c, &last_move_time, &current_time, SHIFT);
+  moveOnTimerFunc(&gi, &c, &last_move_time, &current_time, SHIFT);
 
   ck_assert_int_eq(c.cursor_y, 1);
 }
@@ -966,16 +966,6 @@ START_TEST(test_terminate_game) {
   ck_assert_int_eq(c.quit, 1);
 }
 END_TEST
-
-// START_TEST(test_waitStart_not_started) {
-//   Cursor_s cursor;
-//   cursor.start = false;
-//   int mock_getch = '\n';
-
-//   int ch = waitStart(&cursor, mock_getch);
-//   ck_assert_int_eq(ch, '\n');
-// }
-// END_TEST
 
 Suite *tetris_suite(void) {
   Suite *s;

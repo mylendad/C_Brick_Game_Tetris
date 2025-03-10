@@ -28,40 +28,13 @@ void printFrontend(GameInfo_t *gameInfo, Cursor_s *cursor) {
   refresh();
 }
 
-// void printField(GameInfo_t *gameInfo) {
-//   for (int i = 0; i < HEIGHT + 2; i++) {
-//     mvaddch(i, 0, ACS_VLINE);
-//     mvaddch(i, CENTER_TOP - 1, ACS_VLINE);
-//   }
-
-//   for (int j = 0; j < CENTER_TOP; j++) {
-//     mvaddch(0, j, ACS_HLINE);
-//     mvaddch(HEIGHT + 1, j, ACS_HLINE);
-//   }
-
-//   mvaddch(0, 0, ACS_ULCORNER);
-//   mvaddch(0, WIDTH * 2 + 1, ACS_URCORNER);
-//   mvaddch(HEIGHT + 1, 0, ACS_LLCORNER);
-//   mvaddch(HEIGHT + 1, CENTER_TOP - 1, ACS_LRCORNER);
-
-//   for (int i = 0; i < HEIGHT; i++) {
-//     for (int j = 0; j < WIDTH; j++) {
-//       if (gameInfo->field[i][j]) {
-//         attron(COLOR_PAIR(RED));
-//         mvprintw(i + 1, j * 2 + 1, "[]");
-//         attroff(COLOR_PAIR(RED));
-//       }
-//     }
-//   }
-// }
-
 void printField(GameInfo_t *gameInfo) {
   for (int i = 0; i < HEIGHT + 2; i++) {
     mvaddch(i, 0, ACS_VLINE);
-    mvaddch(i, WIDTH * 2 + 1, ACS_VLINE);
+    mvaddch(i, RIGHT_WALL - 1, ACS_VLINE);
   }
 
-  for (int j = 0; j < WIDTH * 2 + 2; j++) {
+  for (int j = 0; j < RIGHT_WALL; j++) {
     mvaddch(0, j, ACS_HLINE);
     mvaddch(HEIGHT + 1, j, ACS_HLINE);
   }
@@ -69,14 +42,14 @@ void printField(GameInfo_t *gameInfo) {
   mvaddch(0, 0, ACS_ULCORNER);
   mvaddch(0, WIDTH * 2 + 1, ACS_URCORNER);
   mvaddch(HEIGHT + 1, 0, ACS_LLCORNER);
-  mvaddch(HEIGHT + 1, WIDTH * 2 + 1, ACS_LRCORNER);
+  mvaddch(HEIGHT + 1, RIGHT_WALL - 1, ACS_LRCORNER);
 
   for (int i = 0; i < HEIGHT; i++) {
     for (int j = 0; j < WIDTH; j++) {
       if (gameInfo->field[i][j]) {
-        attron(COLOR_PAIR(1));
+        attron(COLOR_PAIR(RED));
         mvprintw(i + 1, j * 2 + 1, "[]");
-        attroff(COLOR_PAIR(1));
+        attroff(COLOR_PAIR(RED));
       }
     }
   }
@@ -128,7 +101,7 @@ void printNext(GameInfo_t *gameInfo) {
       if (gameInfo->next[i][j]) {
         attron(COLOR_PAIR(RED));
         mvprintw(8 + i, WIDTH * 2 + 6 + j * 2,
-                 "[]");  // on the right under the scoreboard
+                 "[]");  // x on the right under the scoreboard
         attroff(COLOR_PAIR(RED));
       }
     }

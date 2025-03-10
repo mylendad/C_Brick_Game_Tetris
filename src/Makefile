@@ -17,7 +17,7 @@ else
 	CLANG_FORMAT = clang-format
 endif
 
-.PHONY: install uninstall clean dvi dist test gcov_report
+.PHONY: build/libtetris.a install uninstall clean dvi dist test gcov_report valgrind run style clear
 
 all: clean install test gcov_report
 
@@ -32,36 +32,9 @@ install: clean build/libtetris.a
 	echo 0 > build/highscore.txt
 	$(CC) $(CFLAGS) ./brick_game/tetris/game.c build/libtetris.a -o build/tetris
 
-# install:
-# 	mkdir -p build
-# 	$(CC) $(CFLAGS) brick_game/tetris/*.c gui/cli/*.c -o tetris -o build/tetris
-# 	echo 0 > build/max_score.txt
-
 uninstall:
 	rm -rf build
-
-run:
-	./build/tetris
-
-test: build/libtetris.a
-	echo 0 > tests/highscore.txt
-	$(CC) $(CFLAGS) $(SRC_TEST) build/libtetris.a $(CHECK) -o tests/brick_game_test 
-	./tests/brick_game_test 
-
-
-valgrind: 
-	valgrind --tool=memcheck --leak-check=yes ./tests/brick_game_test 
-
-gcov_report:
-	echo 0 > highscore.txt
-	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o build/brick_game_test 
-	./build/brick_game_test 
-	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1 
-	lcov --extract coverage.info '*brick_game/tetris/backend.c' -o coverage_filtered.info 
-	genhtml -o report/ coverage_filtered.info
-	rm -rf *.gcno *.gcov *.gcda *.info *.a tests/*.o
-	open ./report/index.html || xdg-open ./report/index.html
-
+	
 clean:
 	rm -rf gcov
 	rm -rf report
@@ -81,6 +54,27 @@ dvi:
 
 dist: install
 	tar -czvf tetris.tar.gz Makefile brick_game gui tests game.c game.h Diagram.png
+
+test: build/libtetris.a
+	echo 0 > tests/highscore.txt
+	$(CC) $(CFLAGS) $(SRC_TEST) build/libtetris.a $(CHECK) -o tests/brick_game_test 
+	./tests/brick_game_test
+
+gcov_report:
+	echo 0 > highscore.txt
+	$(CC) $(CFLAGS) $(SRC_TEST) $(SRC_FILES) $(CHECK) $(GCOV_FLAGS) -o build/brick_game_test 
+	./build/brick_game_test 
+	lcov --capture --directory . --output-file coverage.info --rc geninfo_unexecuted_blocks=1 
+	lcov --extract coverage.info '*brick_game/tetris/backend.c' -o coverage_filtered.info 
+	genhtml -o report/ coverage_filtered.info
+	rm -rf *.gcno *.gcov *.gcda *.info *.a tests/*.o
+	open ./report/index.html || xdg-open ./report/index.html
+
+valgrind: 
+	valgrind --tool=memcheck --leak-check=yes ./tests/brick_game_test 
+
+run:
+	./build/tetris
 
 style:
 	cp ../materials/linters/.clang-format ./

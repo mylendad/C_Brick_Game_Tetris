@@ -48,7 +48,7 @@ START_TEST(test_timerFunc) {
   clock_gettime(CLOCK_MONOTONIC, &last_move_time);
 
   current_time.tv_sec = last_move_time.tv_sec;
-  current_time.tv_nsec = last_move_time.tv_nsec + 101 * 1000000;
+  current_time.tv_nsec = last_move_time.tv_nsec + 101 * THOUSAND_SECONDS;
 
   timerFunc(&gi, &c, &last_move_time, &current_time, SHIFT);
 
@@ -636,6 +636,7 @@ START_TEST(test_jltShapeRotate) {
   }
   c.cursor_x = WIDTH / 2 - 2;
   c.cursor_y = 5;
+
   int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
 
   for (int i = 0; i < 4; i++) {
@@ -669,14 +670,6 @@ START_TEST(test_checkSide_no_collision) {
     }
   }
 
-  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
-
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = cursora[i][j];
-    }
-  }
-
   ck_assert_int_eq(checkSide(&gameInfo, 3, 2, c.shape), false);
 }
 END_TEST
@@ -694,13 +687,7 @@ START_TEST(test_checkSide_collision_with_field) {
   }
   c.cursor_x = WIDTH - 1;
   c.cursor_y = 5;
-  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
 
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = cursora[i][j];
-    }
-  }
   ck_assert_int_eq(checkSide(&gameInfo, c.cursor_x, c.cursor_y, c.shape), true);
 }
 END_TEST
@@ -718,13 +705,7 @@ START_TEST(test_checkSide_right) {
   }
   c.cursor_x = 10;
   c.cursor_y = 5;
-  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
 
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = cursora[i][j];
-    }
-  }
   ck_assert_int_eq(checkSide(&gameInfo, c.cursor_x, c.cursor_y, c.shape), true);
 }
 END_TEST
@@ -742,13 +723,6 @@ START_TEST(test_checkSide_bottom) {
   }
   c.cursor_x = WIDTH - 1;
   c.cursor_y = 19;
-  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
-
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = cursora[i][j];
-    }
-  }
 
   ck_assert_int_eq(checkSide(&gameInfo, c.cursor_x, c.cursor_y, c.shape), true);
 }
@@ -767,13 +741,6 @@ START_TEST(test_checkSide_no_collision_2) {
   }
   c.cursor_x = WIDTH - 1;
   c.cursor_y = 18;
-  int cursora[4][4] = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 1}, {0, 0, 0, 0}};
-
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = cursora[i][j];
-    }
-  }
 
   ck_assert_int_eq(checkSide(&gameInfo, c.cursor_x, c.cursor_y, c.shape), true);
 }
@@ -794,23 +761,12 @@ START_TEST(test_move_left) {
     }
   }
 
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
-
   int initial_x = c.cursor_x;
   userInput(Left, true);
   ck_assert_int_eq(c.cursor_x, initial_x - 1);
 }
 END_TEST
 
-// Тест на перемещение вправо
 START_TEST(test_move_right) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -826,16 +782,6 @@ START_TEST(test_move_right) {
     }
   }
 
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
-
   int initial_x = c.cursor_x;
 
   userInput(Right, true);
@@ -843,7 +789,6 @@ START_TEST(test_move_right) {
 }
 END_TEST
 
-// // Тест на падение вниз
 START_TEST(test_move_down) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -866,8 +811,6 @@ START_TEST(test_move_down) {
       c.shape[i][j] = shapeL[i][j];
     }
   }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
 
   int initial_y = c.cursor_y;
 
@@ -876,7 +819,6 @@ START_TEST(test_move_down) {
 }
 END_TEST
 
-// // Тест на вращение фигуры
 START_TEST(test_rotate) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -892,16 +834,6 @@ START_TEST(test_rotate) {
     }
   }
 
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
-
   char initial_type = c.type;
 
   userInput(Action, true);
@@ -909,7 +841,6 @@ START_TEST(test_rotate) {
 }
 END_TEST
 
-// // Тест на старт игры
 START_TEST(test_start_game) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -925,26 +856,12 @@ START_TEST(test_start_game) {
     }
   }
 
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
-
-  c.cursor_x = 5;
-  c.cursor_y = 5;
-
   userInput(Start, true);
   ck_assert_int_eq(c.cursor_x, WIDTH / 2 - 2);
   ck_assert_int_eq(c.cursor_y, 0);
 }
 END_TEST
 
-// // Тест на паузу
 START_TEST(test_pause_game) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -960,13 +877,6 @@ START_TEST(test_pause_game) {
     }
   }
 
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
   c.cursor_x = WIDTH / 2 - 2;
   c.cursor_y = 0;
 
@@ -980,7 +890,6 @@ START_TEST(test_pause_game) {
 }
 END_TEST
 
-// // Тест на завершение игры
 START_TEST(test_terminate_game) {
   static GameInfo_t gi;
   static Cursor_s c;
@@ -995,16 +904,6 @@ START_TEST(test_terminate_game) {
       gi.field[i][j] = 0;
     }
   }
-
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
-  c.cursor_x = WIDTH / 2 - 2;
-  c.cursor_y = 0;
 
   c.quit = 0;
 

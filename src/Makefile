@@ -51,6 +51,7 @@ clean:
 
 dvi:
 	latex2html dvi/documentation.tex
+	open dvi/documentation/index.html
 
 dist: install
 	tar -czvf tetris.tar.gz Makefile brick_game gui tests game.c game.h Diagram.png
@@ -96,12 +97,6 @@ style:
 	$(CLANG_FORMAT) -n ./gui/cli/*.h
 	$(CLANG_FORMAT) -i ./gui/cli/*.h
 	$(CLANG_FORMAT) -n ./gui/cli/*.h
-	$(CLANG_FORMAT) -n ./*.c
-	$(CLANG_FORMAT) -i ./*.c
-	$(CLANG_FORMAT) -n ./*.c
-	$(CLANG_FORMAT) -n ./*.h
-	$(CLANG_FORMAT) -i ./*.h
-	$(CLANG_FORMAT) -n ./*.h
 	rm .clang-format
 	rm ./tests/.clang-format
 	rm ./brick_game/tetris/.clang-format

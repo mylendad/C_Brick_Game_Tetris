@@ -17,11 +17,19 @@ START_TEST(test_load_highscore) {
 END_TEST
 
 START_TEST(test_timerFunc) {
-  GameInfo_t gi;
-  Cursor_s c;
-  struct timespec last_move_time;
-  struct timespec current_time;
-
+  static GameInfo_t gi;
+  static Cursor_s c;
+  static FSM_State_e current_state = SHIFT;
+static GameInfo_t game_info;
+  static struct timespec last_move_time = {0};
+  clock_gettime(CLOCK_MONOTONIC, &last_move_time);
+  static struct timespec current_time;
+  InputContext_s *ctx = getInputContext();
+  ctx->state = &current_state;
+  ctx->time = &last_move_time;
+  ctx->cursor = &c;
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
+  ctx->game_info = &game_info;
   gi.speed = 100;
   gi.pause = 0;
   gi.field = (int **)calloc(HEIGHT, sizeof(int *));
@@ -32,25 +40,10 @@ START_TEST(test_timerFunc) {
     }
   }
 
-  c.cursor_x = 0;
-  c.cursor_y = 0;
-  c.game_over = false;
-  int shapeL[4][4] = {{0, 0, 0, 0}, {0, 1, 1, 1}, {0, 1, 0, 0}, {0, 0, 0, 0}};
-  c.type = 'J';
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c.shape[i][j] = shapeL[i][j];
-    }
-  }
   c.cursor_x = WIDTH / 2 - 2;
   c.cursor_y = 0;
 
-  clock_gettime(CLOCK_MONOTONIC, &last_move_time);
-
-  current_time.tv_sec = last_move_time.tv_sec;
-  current_time.tv_nsec = last_move_time.tv_nsec + 101 * THOUSAND_SECONDS;
-
-  moveOnTimerFunc(&gi, &c, &last_move_time, &current_time, SHIFT);
+  moveOnTimerFunc(&current_time);
 
   ck_assert_int_eq(c.cursor_y, 1);
 }
@@ -1024,7 +1017,6 @@ Suite *tetris_suite(void) {
   tcase_add_test(tc_core, test_start_game);
   tcase_add_test(tc_core, test_pause_game);
   tcase_add_test(tc_core, test_terminate_game);
-  // tcase_add_test(tc_core, test_waitStart_not_started);
   suite_add_tcase(s, tc_input);
   ;
 

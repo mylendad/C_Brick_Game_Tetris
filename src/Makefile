@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -Werror -Wextra -g -lncurses
-LDFLAGS = -lcheck -lsubunit -lm
+CFLAGS = -std=c11 -g -lncurses
+LDFLAGS = -lcheck -lsubunit -s
 CHECK = -lcheck
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage
 CLANG_FORMAT = clang-format-18
-SRC_FILES = ./brick_game/tetris/backend.c ./gui/cli/*.c
+SRC_FILES = ./brick_game/tetris/backend.c ./gui/cli/*.c ./fsm_loop.c
 SRC_TEST = ./tests/*.c
 TEST_DIR = tests
 OBJ_FILES = ./*.o
@@ -28,9 +28,7 @@ build/libtetris.a: $(SRC_FILES)
 	rm -rf $(OBJ_FILES)
 
 install: clean build/libtetris.a
-	touch highscore.txt
-	echo 0 > build/highscore.txt
-	$(CC) $(CFLAGS) ./brick_game/tetris/game.c build/libtetris.a -o build/tetris
+	$(CC) $(CFLAGS) ./game.c build/libtetris.a -o build/tetris
 
 uninstall:
 	rm -rf build

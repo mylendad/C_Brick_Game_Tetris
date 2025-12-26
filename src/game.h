@@ -31,7 +31,8 @@
 #define MIN_SPEED 100
 
 #define SECOND 1000
-#define THOUSAND_SECONDS 1000000
+
+#define QUANTITY_OF_SHAPES 7
 
 #define RED 1
 #define GREEN 2
@@ -78,6 +79,8 @@ typedef struct {
 typedef struct {
   GameInfo_t *game_info;
   Cursor_s *cursor;
+  FSM_State_e *state;
+  struct timespec *time;
 } InputContext_s;
 
 #endif  // GAME_H

@@ -1,47 +1,44 @@
 #include "backend.h"
 
 #include "../../gui/cli/frontend.h"
-#include "fsm_loop.c"
+#include "../../fsm_loop.h"
 
 GameInfo_t updateCurrentState() {
-  static GameInfo_t game_info;
-  static Cursor_s cursor;
-  static FSM_State_e current_state = START;
-  static struct timespec last_move_time = {0};
   InputContext_s *ctx = getInputContext();
-  ctx->game_info = &game_info;
-  ctx->cursor = &cursor;
-  initializeGame(&game_info, &cursor);
-  clock_gettime(CLOCK_MONOTONIC, &last_move_time);
-  fsmLoop(&game_info, &cursor, &last_move_time, current_state);
-
-  return game_info;
+  GameInfo_t *game_info = ctx->game_info;
+  struct timespec current_time;
+  clock_gettime(CLOCK_MONOTONIC, &current_time);
+  moveOnTimerFunc(&current_time);
+  return *game_info;
 }
 
-void renderingGame(GameInfo_t *game_info, Cursor_s *cursor,
-                   struct timespec *last_move_time, FSM_State_e current_state,
-                   struct timespec *current_time) {
-  moveOnTimerFunc(game_info, cursor, last_move_time, current_time,
-                  current_state);
+void renderingGame() {
+  InputContext_s *ctx = getInputContext();
+  GameInfo_t *game_info = ctx->game_info;
+  Cursor_s *cursor = ctx->cursor;
+  *game_info = updateCurrentState();  // vot ono!!qq
   printFrontend(game_info, cursor);
   usleep(SECOND * 10);
 }
 
-void moveOnTimerFunc(GameInfo_t *game_info, Cursor_s *cursor,
-                     struct timespec *last_move_time,
-                     struct timespec *current_time, FSM_State_e current_state) {
+void moveOnTimerFunc(struct timespec *current_time) {
+  InputContext_s *ctx = getInputContext();
+  Cursor_s *cursor = ctx->cursor;
+  GameInfo_t *game_info = ctx->game_info;
+  FSM_State_e *current_state = ctx->state;
+  struct timespec *last_move_time = ctx->time;
   long time_diff = (current_time->tv_sec - last_move_time->tv_sec) * SECOND +
                    (current_time->tv_nsec - last_move_time->tv_nsec) /
-                       THOUSAND_SECONDS;  // tv_sec - time in seconds; tv_nsec -
+                       (1000 * SECOND);  // tv_sec - time in seconds; tv_nsec -
                                           // time in nanoseconds
 
-  if (time_diff >= game_info->speed && current_state == SHIFT) {
+  if (time_diff >= game_info->speed && *current_state == SHIFT) {
     if (!checkSide(game_info, cursor->cursor_x, cursor->cursor_y + 1,
                    cursor->shape) &&
         game_info->pause == 0 && !cursor->game_over) {
       cursor->cursor_y++;
     }
-    clock_gettime(CLOCK_MONOTONIC, last_move_time);
+    clock_gettime(CLOCK_MONOTONIC, last_move_time);  // clock
   }
 }
 
@@ -144,7 +141,7 @@ bool spawnShape(GameInfo_t *game_info, Cursor_s *cursor) {
       }
     }
     cursor->type = cursor->next_type;
-    int shape_index = rand() % 7;
+    int shape_index = rand() % QUANTITY_OF_SHAPES;
     createShape(game_info, cursor, shape_index, NEXT_SHAPE);
 
     if (checkSide(game_info, cursor->cursor_x, cursor->cursor_y, cursor->shape))

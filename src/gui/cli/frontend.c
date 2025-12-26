@@ -101,7 +101,7 @@ void printNext(GameInfo_t *gameInfo) {
       if (gameInfo->next[i][j]) {
         attron(COLOR_PAIR(RED));
         mvprintw(8 + i, WIDTH * 2 + 6 + j * 2,
-                 "[]");  // x on the right under the scoreboard
+                 "[]");  // coordinate X on the right under the scoreboard
         attroff(COLOR_PAIR(RED));
       }
     }

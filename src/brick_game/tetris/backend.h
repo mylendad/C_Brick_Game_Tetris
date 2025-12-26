@@ -31,4 +31,6 @@ int loadHighScore();
 void waitStart(Cursor_s *cursor);
 void waitQuit(Cursor_s *cursor);
 
+void sleep_ms(long ms);
+
 #endif  // BACKEND_H

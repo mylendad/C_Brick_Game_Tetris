@@ -1,0 +1,47 @@
+Running suite Tetris
+./tests/tests.c:14:P:Core:test_load_highscore:0: Passed
+./tests/tests.c:48:P:Core:test_timerFunc:0: Passed
+./tests/tests.c:55:P:Core:test_save_highscore:0: Passed
+./tests/tests.c:69:P:Core:test_initialize_game:0: Passed
+./tests/tests.c:703:P:Core:test_jltShapeRotate:0: Passed
+./tests/tests.c:721:P:Core:test_checkSide_no_collision:0: Passed
+./tests/tests.c:739:P:Core:test_checkSide_collision_with_field:0: Passed
+./tests/tests.c:757:P:Core:test_checkSide_right:0: Passed
+./tests/tests.c:775:P:Core:test_checkSide_bottom:0: Passed
+./tests/tests.c:793:P:Core:test_checkSide_no_collision_2:0: Passed
+./tests/tests.c:584:P:Core:test_spawn_shape_success:0: Passed
+./tests/tests.c:616:P:Core:test_spawn_shape_fail:0: Passed
+./tests/tests.c:622:P:Core:test_controller_left:0: Passed
+./tests/tests.c:628:P:Core:test_controller_right:0: Passed
+./tests/tests.c:634:P:Core:test_controller_down:0: Passed
+./tests/tests.c:640:P:Core:test_controller_action:0: Passed
+./tests/tests.c:646:P:Core:test_controller_terminate:0: Passed
+./tests/tests.c:652:P:Core:test_controller_pause:0: Passed
+./tests/tests.c:658:P:Core:test_controller_start:0: Passed
+./tests/tests.c:670:P:Core:test_controller_default:0: Passed
+./tests/tests.c:814:P:Core:test_move_left:0: Passed
+./tests/tests.c:836:P:Core:test_move_right:0: Passed
+./tests/tests.c:866:P:Core:test_move_down:0: Passed
+./tests/tests.c:888:P:Core:test_rotate:0: Passed
+./tests/tests.c:909:P:Core:test_start_game:0: Passed
+./tests/tests.c:937:P:Core:test_pause_game:0: Passed
+./tests/tests.c:959:P:Core:test_terminate_game:0: Passed
+./tests/tests.c:95:P:Game Logic:test_merge_cursor:0: Passed
+./tests/tests.c:122:P:Game Logic:test_check_side_collisions:0: Passed
+./tests/tests.c:139:P:Game Logic:test_clear_lines:0: Passed
+./tests/tests.c:157:P:Game Logic:test_clear_lines_2:0: Passed
+./tests/tests.c:175:P:Game Logic:test_clear_lines_3:0: Passed
+./tests/tests.c:194:P:Game Logic:test_clear_lines_4:0: Passed
+./tests/tests.c:427:P:Game Logic:test_shape_rotationT:0: Passed
+./tests/tests.c:460:P:Game Logic:test_shape_rotationS_collision:0: Passed
+./tests/tests.c:361:P:Game Logic:test_shape_rotationI:0: Passed
+./tests/tests.c:328:P:Game Logic:test_shape_rotationI_collision:0: Passed
+./tests/tests.c:394:P:Game Logic:test_shape_rotationO:0: Passed
+./tests/tests.c:294:P:Game Logic:test_shape_rotationJ:0: Passed
+./tests/tests.c:261:P:Game Logic:test_shape_rotationL:0: Passed
+./tests/tests.c:228:P:Game Logic:test_shape_rotationL_collision:0: Passed
+./tests/tests.c:493:P:Game Logic:test_shape_rotationS:0: Passed
+./tests/tests.c:527:P:Game Logic:test_shape_rotationZ:0: Passed
+./tests/tests.c:544:P:Game Logic:test_create_shape:0: Passed
+Results for all suites run:
+100%: Checks: 44, Failures: 0, Errors: 0

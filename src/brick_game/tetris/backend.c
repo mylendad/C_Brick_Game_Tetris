@@ -16,9 +16,9 @@ void renderingGame() {
   InputContext_s *ctx = getInputContext();
   GameInfo_t *game_info = ctx->game_info;
   Cursor_s *cursor = ctx->cursor;
-  *game_info = updateCurrentState();  // vot ono!!qq
+  *game_info = updateCurrentState();  
   printFrontend(game_info, cursor);
-  usleep(SECOND * 10);
+  sleep_ms(10);
 }
 
 void moveOnTimerFunc(struct timespec *current_time) {
@@ -407,6 +407,13 @@ int loadHighScore() {
     }
   }
   return high_score;
+}
+
+void sleep_ms(long ms) {
+    struct timespec ts;
+    ts.tv_sec  = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000L;
+    nanosleep(&ts, NULL);
 }
 
 void waitStart(Cursor_s *cursor) {

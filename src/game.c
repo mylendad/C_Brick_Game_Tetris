@@ -22,7 +22,7 @@ int main() {
   ctx->state = &current_state;
   ctx->time = &last_move_time;
   fsmLoop();
-  usleep(1000);
+  sleep_ms(1);
   endwin();
   return 0;
 }
